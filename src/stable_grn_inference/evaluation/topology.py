@@ -309,9 +309,11 @@ def topology_metrics_for_cutoff(
         "top1_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=1),
         "top3_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=3),
         "top5_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=5),
+        "top10_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=10),
         "top1_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=1),
         "top3_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=3),
         "top5_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=5),
+        "top10_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=10),
         "reciprocal_pair_count": reciprocal_pairs,
         "reciprocal_false_positive_pair_count": reciprocal_false_pairs,
         "reciprocal_false_positive_edge_count": reciprocal_false_positive_edge_count(

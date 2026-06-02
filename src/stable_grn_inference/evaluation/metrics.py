@@ -64,5 +64,9 @@ def aggregate_per_network_metrics(
     std_rows = grouped[metric_columns].std().rename(
         columns={column: f"std_{column}" for column in metric_columns}
     )
-    counts = grouped.size().rename(columns={"size": "n_networks"})
+    # Name the count column directly so it never collides with a group column
+    # that happens to be named "size" (the default name groupby.size() would use).
+    counts = (
+        network_metrics.groupby(group_columns, dropna=False).size().reset_index(name="n_networks")
+    )
     return mean_rows.merge(std_rows, on=group_columns, how="left").merge(counts, on=group_columns, how="left")

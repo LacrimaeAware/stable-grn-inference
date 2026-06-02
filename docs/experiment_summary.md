@@ -4,7 +4,7 @@ This page summarizes the DREAM4 Size10 experiments completed so far. It is meant
 
 ## Current Scope
 
-The current benchmark scope is DREAM4 Size10 in-silico networks 1-5. The gold-standard files provide directed edge labels, and the expression files provide input observations. Most experiments use 90 directed non-self candidate edges per network.
+The benchmark scope is DREAM4 Size10 and Size100 in-silico networks 1-5. The gold-standard files provide directed edge labels, and the expression files provide input observations. Size10 uses 90 directed non-self candidate edges per network; Size100 uses 9900.
 
 Data regimes tested so far:
 
@@ -13,7 +13,7 @@ Data regimes tested so far:
 - `knockdowns`
 - `timeseries`, first treated as same-time observations and then tested with adjacent one-step lagged samples
 
-A first DREAM4 Size100 time-series scaling audit has now been run for the dynamic sparse candidate (experiment 9 below is Size10; experiment 10 is Size100). No final stability-aware method has been implemented yet, and the current lagged time-series work is still a first pass, not a full dynGENIE3 implementation.
+DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10) and for a combined dynGENIE3-style baseline, sparsity-calibration, and rank-fusion audit across both sizes (experiment 11). A GeneNetWeaver simulation-sweep design (experiment 12) is scaffolded but not executed. No official dynGENIE3 package is installed, so tree delta/derivative methods are dynGENIE3-style, not an official reproduction; no final stability-aware method has been implemented yet.
 
 ## Experiments
 
@@ -29,6 +29,8 @@ A first DREAM4 Size100 time-series scaling audit has now been run for the dynami
 | Dynamic model batch | `experiments/08_dream4_size10_dynamic_model_batch/run_dynamic_model_batch_audit.py` | Which evidence types help most: dynamic targets, trees, sparse linear models, MLPs, stability, fusion, or preprocessing? |
 | Dynamic sparse validation | `experiments/09_dream4_size10_dynamic_sparse_validation/run_dynamic_sparse_validation.py` | Is the best dynamic sparse-linear result robust, interpretable, and not just a self-persistence artifact? |
 | Size100 dynamic sparse scaling | `experiments/10_dream4_size100_dynamic_sparse_scaling/run_size100_dynamic_sparse_scaling.py` | Does the Size10 dynamic sparse candidate survive on DREAM4 Size100 time-series data? |
+| Dynamic baseline + calibration + fusion | `experiments/11_dream4_dynamic_baseline_and_calibration/run_dynamic_baseline_and_calibration.py` | How do dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion compare across Size10 and Size100? |
+| GNW sweep design | `experiments/12_gnw_sweep_design/gnw_sweep_design.md` | How would we test whether these findings generalize under controlled GeneNetWeaver simulation? (design scaffold) |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -280,6 +282,26 @@ Scaling findings:
 
 Interpretation: the headline Size10 `a0_03` result looks substantially like a small-network effect. The include-self sparse family is not dead - it still leads mean AUPR at a higher alpha - but the specific candidate, and especially its reciprocal-direction advantage, does not reproduce at Size100.
 
+## 10. Dynamic Baseline, Calibration, and Fusion
+
+This audit ran across both sizes with three goals: a dynGENIE3-style tree baseline (level/delta/derivative targets), a sparsity-calibration sweep for LASSO/Elastic Net over alpha `[0.001 ... 1.0]`, and rank fusion (mean reciprocal rank, Borda, normalized score, plus a reciprocal-direction penalty). No official dynGENIE3 package is installed, so the delta/derivative trees are dynGENIE3-style.
+
+Best method per size (mean across five networks):
+
+| Size | Best AUPR | AUPR | Best AUROC | AUROC |
+|---|---|---:|---|---:|
+| 10 | `dynamic_lasso_level_include_self_a0_03` | 0.652712 | `dynamic_lasso_level_include_self_a0_03` | 0.821067 |
+| 100 | `fusion_borda` | 0.208067 | `lagged_genie3_rf_level` | 0.753913 |
+
+Findings:
+
+- dynGENIE3-style delta/derivative tree targets do not help; they clearly hurt versus level GENIE3 at both sizes (Size100 delta RF AUPR 0.045 vs level RF 0.157). Derivative and delta tree rankings nearly coincide on DREAM4's uniform time grid.
+- Sparsity calibration explains the Size10-vs-Size100 difference. The best AUPR alpha for LASSO level include-self rises from 0.03 (Size10) to 0.1 (Size100), and at Size100 that peak alpha drives predicted edge density (0.07) toward the true density (0.02). Alpha behaves like a density knob, and stronger regularization is consistently better at Size100.
+- Include-self still beats exclude-self at both sizes after per-config alpha calibration (Size10 +0.166 AUPR; Size100 +0.030 AUPR).
+- Self-persistence is dominant and grows with size and alpha (self/non-self ratio up to ~465 at Size100), so it reads as a model-stability term that is useful to fit but dangerous to interpret as directed regulation.
+- Rank fusion helps in the hard regime: at Size100 `fusion_borda` is the best AUPR method overall (0.208 vs best single input 0.173, with precision@10 0.84), while at Size10 the single best sparse method still wins. The reciprocal-direction penalty gives a small Size100 gain over base fusion and slightly lowers the reciprocal false-positive rate.
+- By AUROC, trees (`lagged_genie3_rf_level`, 0.754) remain the Size100 leader, so a literature-faithful dynGENIE3 comparison is the right next reference.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -295,14 +317,20 @@ The current evidence supports a cautious story:
 - The dynamic batch suggests sparse linear models with self-persistence included during fitting may be the most promising Size10 temporal baseline so far.
 - The dynamic sparse validation supports `dynamic_lasso_level_include_self_a0_03` as the current Size10 temporal sparse candidate, but it also confirms that self-persistence is a major part of the model and must be validated carefully.
 - Bootstrap sparse selection is not automatically helpful in the dynamic setting tested here. Mean absolute bootstrapped coefficients are close to one-shot coefficients, while selection frequency underperforms.
-- Neural MLP and simple rank fusion are not yet helping in this small-data setting.
+- Neural MLP does not help in this small-data setting. Simple rank fusion does not help at Size10, but it does help in the harder Size100 regime (see below).
 - The Size100 scaling audit weakens the Size10 headline. The specific `dynamic_lasso_level_include_self_a0_03` candidate does not scale: at Size100 it only ties lagged correlation on AUPR, trails it on AUROC, wins 0 of 5 networks, and loses its reciprocal-direction advantage entirely. Higher regularization (`a0_1`) is the best sparse setting at Size100, and lagged GENIE3 wins AUROC on every Size100 network. The include-self sparse family remains worth studying, but the small-network result should not be promoted as a main method.
+- The calibration/fusion audit reframes the alpha question and revives fusion. The best alpha is not magic; it tracks network density (0.03 at Size10, 0.1 at Size100, pushing predicted density toward true density). dynGENIE3-style delta/derivative tree targets hurt versus level GENIE3. Rank fusion of complementary sparse + tree + correlation evidence is the best Size100 AUPR method (`fusion_borda` 0.208, precision@10 0.84), and a fixed reciprocal-direction penalty slightly improves Size100 AUPR and reciprocal false positives. No single method wins both AUPR and AUROC, and self-persistence remains a dominant but interpretation-dangerous term.
 
 ## Current Recommendation
 
-The Size10 candidate `dynamic_lasso_level_include_self_a0_03` should be kept as a documented Size10 finding, not promoted to a main method. The Size100 scaling audit shows its advantage does not reproduce at scale: it ties correlation on AUPR, trails it on AUROC, and loses the reciprocal-direction advantage that made it interesting at Size10. At Size100, stronger regularization (`a0_1`) is the best sparse setting and lagged GENIE3 is the AUROC leader.
+The defensible current position is that dynamic GRN inference on DREAM4 is regime-dependent rather than owned by one method. Concretely:
 
-The next branch should (1) consolidate and honestly report this negative scaling result, (2) add a literature-faithful dynamic baseline (dynGENIE3) so the sparse family is compared against the right reference at Size100, and (3) use GeneNetWeaver simulation sweeps to vary noise, trajectory length, and network size and locate where, if anywhere, include-self sparsity actually helps. New data branches (perturbation/knockout dynamics) should wait until a faithful dynamic baseline is in place.
+- Keep `dynamic_lasso_level_include_self_a0_03` as a Size10 finding only; it does not scale to Size100.
+- Treat alpha as a calibrated, density-tracking knob, not a fixed value. Use stronger regularization on larger, sparser networks (best alpha 0.03 at Size10, 0.1 at Size100).
+- At Size100, prefer rank fusion of complementary sparse + tree + correlation evidence (best AUPR, best precision@k) and keep level GENIE3 as the AUROC reference; do not use dynGENIE3-style delta/derivative tree targets, which hurt.
+- Treat self-persistence as a model-stability term, not directed-edge evidence.
+
+The next concrete steps are: (1) add a literature-faithful (official) dynGENIE3 baseline so the dynamic comparison is fair, since no official package is currently installed; (2) execute the GeneNetWeaver simulation sweeps designed in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` to test whether the density/alpha and fusion findings generalize; and (3) only then consider perturbation/knockout dynamic models.
 
 ## Caveats
 

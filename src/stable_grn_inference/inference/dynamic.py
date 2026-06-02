@@ -462,6 +462,64 @@ def rank_fusion(
     return _sort_ranked_edges(fused)
 
 
+def rank_fusion_with_reciprocal_penalty(
+    edge_tables: Sequence[pd.DataFrame],
+    *,
+    penalty: float = 0.5,
+    top_fraction: float = 0.05,
+    base_method: Literal["mean_normalized_score", "mean_reciprocal_rank", "borda"] = "mean_reciprocal_rank",
+) -> pd.DataFrame:
+    """Fuse rankings, then down-weight the weaker side of high-confidence reciprocal pairs.
+
+    The audits repeatedly saw reciprocal-direction false positives, where both
+    ``G_i -> G_j`` and ``G_j -> G_i`` rank highly even though real regulation is
+    usually directional. This variant first fuses the inputs with ``base_method``,
+    then, for every unordered gene pair whose *both* directed edges fall in the
+    top ``top_fraction`` of the fused ranking, multiplies the weaker-scoring
+    direction by ``penalty`` (0 < penalty <= 1). It is a simple fixed-weight
+    heuristic, not a tuned model.
+    """
+    if not 0.0 < penalty <= 1.0:
+        raise ValueError("penalty must be in (0, 1]")
+    if not 0.0 < top_fraction <= 1.0:
+        raise ValueError("top_fraction must be in (0, 1]")
+
+    fused = rank_fusion(edge_tables, method=base_method)
+    n_edges = len(fused)
+    if n_edges == 0:
+        return fused
+
+    top_count = max(1, int(round(top_fraction * n_edges)))
+    top_pairs = {
+        (str(row.source), str(row.target))
+        for row in fused.head(top_count).itertuples(index=False)
+    }
+    scores = {
+        (str(row.source), str(row.target)): float(row.score)
+        for row in fused.itertuples(index=False)
+    }
+
+    penalized: set[tuple[str, str]] = set()
+    for source, target in top_pairs:
+        if source >= target:  # process each unordered pair once
+            continue
+        reverse = (target, source)
+        if reverse not in top_pairs:
+            continue
+        forward_score = scores[(source, target)]
+        reverse_score = scores[reverse]
+        weaker = (source, target) if forward_score <= reverse_score else reverse
+        penalized.add(weaker)
+
+    adjusted = fused.copy()
+    adjusted["score"] = adjusted["score"].astype(float)
+    if penalized:
+        keys = list(zip(adjusted["source"].astype(str), adjusted["target"].astype(str)))
+        factors = np.array([penalty if key in penalized else 1.0 for key in keys], dtype=float)
+        adjusted["score"] = adjusted["score"].to_numpy(dtype=float) * factors
+    return _sort_ranked_edges(adjusted)
+
+
 def _prepare_matrices(x_t: pd.DataFrame, target: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Validate and normalize predictor and target matrices."""
     if len(x_t) != len(target):

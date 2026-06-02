@@ -33,19 +33,21 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Current dynamic sparse validation result: `dynamic_lasso_level_include_self_a0_03` remains the best Size10 temporal sparse candidate by mean AUPR/AUROC, improves reciprocal false-positive behavior relative to lagged GENIE3 references, and has partially encouraging topology metrics. However, it wins per-network AUPR on only 2 of 5 networks and relies heavily on self-persistence, so it needs validation on richer data or a literature-faithful dynGENIE3 comparison.
 - Added the first DREAM4 Size100 time-series scaling audit for the dynamic sparse candidate.
 - Current Size100 scaling result: the Size10 winner does not scale. `dynamic_lasso_level_include_self_a0_03` ties lagged correlation on mean AUPR, trails it on mean AUROC, wins 0 of 5 Size100 networks, and loses its reciprocal-direction advantage (pair rate 1.00 vs ~0.20 at Size10). Stronger regularization (`a0_1`) is the best sparse setting at Size100, lagged GENIE3 wins mean AUROC and every per-network AUROC, and self-persistence is even more extreme (self/non-self ratio ~26 vs ~8.9). The include-self sparse family stays worth studying but should not be promoted as a main method.
-- Next: consolidate and report the negative scaling result, add a literature-faithful dynGENIE3 baseline for a fair Size100 comparison, and run GeneNetWeaver simulation sweeps to find where include-self sparsity actually helps before opening new perturbation/knockout data branches.
+- Added a combined dynGENIE3-style baseline, sparsity-calibration, and rank-fusion audit across Size10 and Size100 (experiment 11), plus a GeneNetWeaver sweep design scaffold (experiment 12).
+- Current calibration/fusion result: dynamic GRN inference on DREAM4 is regime-dependent. The best alpha tracks network density (0.03 at Size10, 0.1 at Size100), stronger regularization is better at Size100, and include-self still helps after calibration. dynGENIE3-style delta/derivative tree targets hurt versus level GENIE3. Rank fusion of complementary sparse + tree + correlation evidence is the best Size100 AUPR method (`fusion_borda` 0.208, precision@10 0.84) and a fixed reciprocal-direction penalty slightly improves Size100 AUPR and reciprocal false positives; trees still lead Size100 AUROC. No official dynGENIE3 is installed, so tree delta/derivative methods are dynGENIE3-style.
+- Next: add a literature-faithful (official) dynGENIE3 baseline, then execute the GeneNetWeaver sweeps designed in experiment 12 to test whether the density/alpha and fusion findings generalize, before opening perturbation/knockout data branches.
 
 ## Phase 3: Sparsity Calibration and Topology-Aware Evaluation
 
-- Study thresholding rules that avoid choosing a network density arbitrarily.
-- Added evaluation beyond edgewise scores, including degree Spearman, hub overlap, reciprocal false-positive pairs, reciprocal edge counts, feed-forward loop counts, and true-hub edge precision/recall.
-- Compare whether future stability ranking changes both edge metrics and recovered topology.
+- Studied thresholding/sparsity rules that avoid choosing a network density arbitrarily (experiment 11): an alpha sweep shows the best alpha tracks true edge density and behaves like a density knob, and an oracle-density (top-N-true) evaluation is recorded as a non-deployable diagnostic.
+- Added evaluation beyond edgewise scores, including degree Spearman, hub overlap (top-3/5/10), reciprocal false-positive pairs, reciprocal edge counts, vectorized feed-forward loop counts, and true-hub edge precision/recall.
+- Added a reciprocal-direction penalty to rank fusion to target the recurring reciprocal false-positive problem.
 
 ## Phase 4: GeneNetWeaver Simulation Sweeps
 
-- Use GeneNetWeaver-style synthetic networks after the baseline pipeline is working.
-- Vary noise, sampling length, perturbation setting, and network size.
-- Measure where stability-aware sparse inference helps, fails, or changes calibration.
+- Design scaffolded in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` (network sizes 10/30/50/100, trajectory lengths 21/50/100, trajectory counts 5/10/20, noise levels, perturbation regimes, methods, metrics, and success questions).
+- GNW is not yet installed; the experiment-11 detector reports availability and execution is not blocked on it.
+- Use GeneNetWeaver synthetic networks to vary noise, sampling length, perturbation setting, and network size, and measure where calibrated dynamic sparse inference and rank fusion help, fail, or change calibration.
 
 ## Optional Later Work
 

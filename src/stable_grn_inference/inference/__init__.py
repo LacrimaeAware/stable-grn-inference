@@ -15,6 +15,7 @@ from .dynamic import (
     rank_edges_by_dynamic_mlp_permutation,
     rank_edges_by_dynamic_tree_ensemble,
     rank_fusion,
+    rank_fusion_with_reciprocal_penalty,
     summarize_resampled_dynamic_linear_coefficients,
     summarize_resampled_dynamic_scores,
 )
@@ -52,6 +53,7 @@ __all__ = [
     "rank_edges_by_lasso",
     "rank_edges_by_random_forest",
     "rank_fusion",
+    "rank_fusion_with_reciprocal_penalty",
     "summarize_resampled_dynamic_linear_coefficients",
     "summarize_resampled_dynamic_scores",
 ]
