@@ -36,3 +36,33 @@ def precision_at_k(scored_edges: pd.DataFrame, truth_column: str, k: int) -> flo
     if top_k.empty:
         return 0.0
     return float(top_k[truth_column].mean())
+
+
+def aggregate_per_network_metrics(
+    network_metrics: pd.DataFrame,
+    *,
+    group_columns: list[str],
+    metric_columns: list[str] | None = None,
+) -> pd.DataFrame:
+    """Aggregate per-network metric rows with mean, std, and network counts."""
+    if network_metrics.empty:
+        return pd.DataFrame()
+    missing = [column for column in group_columns if column not in network_metrics.columns]
+    if missing:
+        raise ValueError(f"missing group columns: {missing}")
+
+    if metric_columns is None:
+        excluded = set(group_columns) | {"row_type", "network_id", "network"}
+        metric_columns = [
+            column
+            for column in network_metrics.columns
+            if column not in excluded and pd.api.types.is_numeric_dtype(network_metrics[column])
+        ]
+
+    grouped = network_metrics.groupby(group_columns, dropna=False, as_index=False)
+    mean_rows = grouped[metric_columns].mean()
+    std_rows = grouped[metric_columns].std().rename(
+        columns={column: f"std_{column}" for column in metric_columns}
+    )
+    counts = grouped.size().rename(columns={"size": "n_networks"})
+    return mean_rows.merge(std_rows, on=group_columns, how="left").merge(counts, on=group_columns, how="left")

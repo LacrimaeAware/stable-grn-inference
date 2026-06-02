@@ -16,6 +16,7 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Add topology-aware evaluation for hubs, degree patterns, reciprocal edges, and simple motifs.
 - Run a first lagged Size10 time-series audit using within-trajectory source(t) to target(t+1) samples.
 - Run a broad dynamic model batch comparing sparse linear, tree, MLP, stability, rank-fusion, and preprocessing variants.
+- Validate the strongest dynamic sparse-linear candidate for alpha sensitivity, self-persistence, bootstrap behavior, reciprocal errors, and topology metrics.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
 

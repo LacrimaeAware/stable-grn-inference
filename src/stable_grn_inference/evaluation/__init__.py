@@ -1,6 +1,6 @@
 """Evaluation metrics for edge-ranking experiments."""
 
-from .metrics import aupr, auroc, precision_at_k
+from .metrics import aggregate_per_network_metrics, aupr, auroc, precision_at_k
 from .topology import (
     degree_by_node,
     directed_adjacency,
@@ -16,6 +16,7 @@ from .topology import (
 __all__ = [
     "aupr",
     "auroc",
+    "aggregate_per_network_metrics",
     "degree_by_node",
     "directed_adjacency",
     "feed_forward_loop_count",

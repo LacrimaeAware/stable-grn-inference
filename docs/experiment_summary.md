@@ -27,6 +27,7 @@ No Size100 scaling or final stability-aware method has been implemented yet. The
 | Topology evaluation | `experiments/06_dream4_size10_topology_evaluation/run_topology_evaluation.py` | Do top-ranked edges recover hubs, degree patterns, reciprocal structure, and motifs? |
 | Lagged time-series audit | `experiments/07_dream4_size10_lagged_timeseries/run_lagged_timeseries_audit.py` | Does using temporal order improve directed edge recovery over same-time scoring? |
 | Dynamic model batch | `experiments/08_dream4_size10_dynamic_model_batch/run_dynamic_model_batch_audit.py` | Which evidence types help most: dynamic targets, trees, sparse linear models, MLPs, stability, fusion, or preprocessing? |
+| Dynamic sparse validation | `experiments/09_dream4_size10_dynamic_sparse_validation/run_dynamic_sparse_validation.py` | Is the best dynamic sparse-linear result robust, interpretable, and not just a self-persistence artifact? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -219,6 +220,37 @@ Interpretation:
 - The fixed stability variants and equal-weight rank-fusion variants do not beat the best single dynamic model.
 - Moving-average smoothing hurts the RF level/exclude-self baseline. Wavelet denoising was skipped because PyWavelets is not installed.
 
+## 8. Dynamic Sparse Validation
+
+This focused audit stress-tested the strongest dynamic sparse-linear candidate from the broad dynamic batch. It compared LASSO level/delta targets with include-self and exclude-self predictor modes, Elastic Net include-self variants, lagged GENIE3-style tree references, and trajectory-bootstrap rankings for selected sparse candidates.
+
+Best mean edge metrics across the five Size10 networks:
+
+| Metric | Winning Method | Value |
+|---|---|---:|
+| AUPR | `dynamic_lasso_level_include_self_a0_03` | 0.652712 |
+| AUROC | `dynamic_lasso_level_include_self_a0_03` | 0.821067 |
+| precision@10 | `dynamic_lasso_level_include_self_a0_03` | 0.680000 |
+
+Important comparisons:
+
+| Method | Mean AUROC | Mean AUPR | Mean Reciprocal FP Pair Rate |
+|---|---:|---:|---:|
+| `dynamic_lasso_level_include_self_a0_03` | 0.821067 | 0.652712 | 0.200000 |
+| `lagged_genie3_random_forest` | 0.767974 | 0.536451 | 0.950000 |
+| `lagged_genie3_extra_trees` | 0.765530 | 0.515946 | 1.000000 |
+| `lagged_correlation_reference` | 0.712754 | 0.458295 | 1.000000 |
+
+Validation findings:
+
+- `alpha=0.03` is the best LASSO alpha by mean AUPR in the tested grid.
+- The result is strong but not uniform: the winning method is the per-network AUPR winner on 2 of 5 networks.
+- Include-self improves matched LASSO AUPR in most tested target/alpha comparisons, with 5 of 5 network wins for several moderate-alpha level and delta settings.
+- Persistence is substantial. For the winning model, mean absolute self coefficient is roughly 8.9 times the mean absolute non-self coefficient.
+- Bootstrap mean-absolute-coefficient ranking is close to the one-shot winner but does not improve it; bootstrap selection-frequency ranking hurts the include-self candidates.
+- The best sparse dynamic model sharply reduces reciprocal false-positive pair rate compared with lagged GENIE3 and lagged correlation references.
+- Topology agrees partially, not completely. The edge-metric winner has top-3 out-hub overlap 0.466667 and top-3 in-hub overlap 0.600000, while other sparse variants win the best hub-overlap metrics.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -232,13 +264,15 @@ The current evidence supports a cautious story:
 - Same-time treatment of time-series data is only an audit shortcut. The first lagged audit shows that temporal order substantially improves edge recovery.
 - Lagged models are now the strongest Size10 time-series baselines by edge metrics, but reciprocal-direction and topology recovery issues remain.
 - The dynamic batch suggests sparse linear models with self-persistence included during fitting may be the most promising Size10 temporal baseline so far.
+- The dynamic sparse validation supports `dynamic_lasso_level_include_self_a0_03` as the current Size10 temporal sparse candidate, but it also confirms that self-persistence is a major part of the model and must be validated carefully.
+- Bootstrap sparse selection is not automatically helpful in the dynamic setting tested here. Mean absolute bootstrapped coefficients are close to one-shot coefficients, while selection frequency underperforms.
 - Neural MLP and simple rank fusion are not yet helping in this small-data setting.
 
 ## Current Recommendation
 
-The next main branch should be a focused validation of the dynamic sparse-linear include-self result. Before scaling, test whether this result is stable across networks, target definitions, trajectory resampling, and topology metrics, and compare it against a refined dynGENIE3-style tree baseline.
+The current main candidate is `dynamic_lasso_level_include_self_a0_03` for Size10 temporal sparse inference. It is strong enough to preserve as the leading sparse branch, but not strong enough to overclaim.
 
-Stability over dynamic sparse and tree models remains a useful follow-up ablation. Size100 scaling should wait until the temporal baseline and topology evaluation story are clearer.
+The next branch should validate the self-persistence mechanism against either Size100 time-series data, GeneNetWeaver simulation sweeps, or a literature-faithful dynGENIE3 reproduction. A refined dynGENIE3 comparison is the cleanest methodological check; Size100 is the cleanest scaling check.
 
 ## Caveats
 

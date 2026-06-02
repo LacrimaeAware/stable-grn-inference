@@ -29,7 +29,9 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Current lagged result: lagged methods substantially improve edge AUROC/AUPR over same-time references. `lagged_genie3_random_forest` is the strongest first temporal baseline by mean AUPR/AUROC, while topology and reciprocal-direction recovery remain mixed.
 - Added a broad dynamic model batch comparing target types, self-predictor modes, tree models, sparse linear models, MLP permutation importance, stability, rank fusion, and light preprocessing.
 - Current dynamic batch result: sparse linear level-target models with `include_self_predictor_no_self_edge` win mean AUPR/AUROC. Rank fusion, simple MLP, and moving-average preprocessing do not beat the best single dynamic model.
-- Next: focus validation on the dynamic sparse-linear include-self result and compare it against a refined dynGENIE3-style baseline before Size100 scaling.
+- Added a focused validation audit for the dynamic sparse-linear include-self result.
+- Current dynamic sparse validation result: `dynamic_lasso_level_include_self_a0_03` remains the best Size10 temporal sparse candidate by mean AUPR/AUROC, improves reciprocal false-positive behavior relative to lagged GENIE3 references, and has partially encouraging topology metrics. However, it wins per-network AUPR on only 2 of 5 networks and relies heavily on self-persistence, so it needs validation on richer data or a literature-faithful dynGENIE3 comparison.
+- Next: validate the self-persistence mechanism on Size100 time-series data, GeneNetWeaver simulation sweeps, or a refined dynGENIE3-style temporal baseline before treating it as the main method.
 
 ## Phase 3: Sparsity Calibration and Topology-Aware Evaluation
 

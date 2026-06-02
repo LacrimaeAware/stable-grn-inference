@@ -15,6 +15,7 @@ from sklearn.neural_network import MLPRegressor
 
 SelfPredictorMode = Literal["exclude_self_predictor", "include_self_predictor_no_self_edge"]
 TreeKind = Literal["random_forest", "extra_trees"]
+LinearModelKind = Literal["lasso", "elastic_net"]
 Ranker = Callable[[pd.DataFrame, pd.DataFrame], pd.DataFrame]
 
 
@@ -99,6 +100,202 @@ def _rank_edges_by_linear_model(
             if source != target_gene:
                 rows.append({"source": source, "target": target_gene, "score": float(abs(coefficient))})
     return _sort_ranked_edges(pd.DataFrame(rows))
+
+
+def fit_dynamic_linear_coefficients(
+    x_t: pd.DataFrame,
+    target: pd.DataFrame,
+    *,
+    model_kind: LinearModelKind,
+    alpha: float,
+    l1_ratio: float | None = None,
+    self_predictor_mode: SelfPredictorMode = "exclude_self_predictor",
+    max_iter: int = 50000,
+    coefficient_tolerance: float = 1e-12,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Fit target-wise sparse linear models and return signed coefficients.
+
+    The edge table contains one row for every directed non-self edge and uses
+    absolute coefficient magnitude as ``score``. When self predictors are
+    included during fitting, self coefficients are returned in a separate
+    target-level table; self-edges are never emitted as candidate edges.
+    """
+    if alpha <= 0:
+        raise ValueError("alpha must be positive")
+    if coefficient_tolerance < 0:
+        raise ValueError("coefficient_tolerance must be nonnegative")
+    if model_kind == "elastic_net" and l1_ratio is None:
+        raise ValueError("l1_ratio is required for elastic_net")
+
+    x, y = _prepare_matrices(x_t, target)
+    edge_rows: list[dict[str, float | str | bool]] = []
+    self_rows: list[dict[str, float | str | bool]] = []
+
+    for target_gene in x.columns:
+        predictors = _predictor_columns(x.columns, target_gene, self_predictor_mode)
+        x_values = _standardize_columns(x[predictors].to_numpy(dtype=float))
+        y_values = _standardize_vector(y[target_gene].to_numpy(dtype=float))
+        model = _make_linear_model(
+            model_kind,
+            alpha=alpha,
+            l1_ratio=l1_ratio,
+            max_iter=max_iter,
+        )
+        model.fit(x_values, y_values)
+        for source, coefficient in zip(predictors, model.coef_):
+            coefficient = float(coefficient)
+            selected = abs(coefficient) > coefficient_tolerance
+            row = {
+                "source": str(source),
+                "target": str(target_gene),
+                "coefficient": coefficient,
+                "score": abs(coefficient),
+                "selected": selected,
+            }
+            if source == target_gene:
+                self_rows.append(
+                    {
+                        "target": str(target_gene),
+                        "self_coefficient": coefficient,
+                        "self_abs_coefficient": abs(coefficient),
+                        "self_selected": selected,
+                    }
+                )
+            else:
+                edge_rows.append(row)
+
+    edge_columns = ["source", "target", "coefficient", "score", "selected"]
+    self_columns = ["target", "self_coefficient", "self_abs_coefficient", "self_selected"]
+    edges = pd.DataFrame(edge_rows, columns=edge_columns)
+    self_coefficients = pd.DataFrame(self_rows, columns=self_columns)
+    return _sort_ranked_edges(edges), self_coefficients
+
+
+def summarize_resampled_dynamic_linear_coefficients(
+    x_t: pd.DataFrame,
+    target: pd.DataFrame,
+    resample_indices: list[np.ndarray],
+    *,
+    model_kind: LinearModelKind,
+    alpha: float,
+    l1_ratio: float | None = None,
+    self_predictor_mode: SelfPredictorMode = "exclude_self_predictor",
+    max_iter: int = 50000,
+    coefficient_tolerance: float = 1e-12,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Summarize sparse linear coefficients over resampled lagged rows.
+
+    Returns edge-level nonzero selection frequency plus mean signed and mean
+    absolute coefficients. If self predictors are included, a target-level
+    self-coefficient summary is returned as the second table.
+    """
+    if not resample_indices:
+        raise ValueError("resample_indices must not be empty")
+
+    x, y = _prepare_matrices(x_t, target)
+    edges = directed_nonself_edges(list(x.columns))
+    n_edges = len(edges)
+    coefficient_sum = np.zeros(n_edges, dtype=float)
+    abs_coefficient_sum = np.zeros(n_edges, dtype=float)
+    selected_sum = np.zeros(n_edges, dtype=float)
+
+    target_names = pd.DataFrame({"target": [str(gene) for gene in x.columns]})
+    self_coefficient_sum = np.zeros(len(target_names), dtype=float)
+    self_abs_sum = np.zeros(len(target_names), dtype=float)
+    self_selected_sum = np.zeros(len(target_names), dtype=float)
+    saw_self_coefficients = False
+
+    for indices in resample_indices:
+        edge_coefficients, self_coefficients = fit_dynamic_linear_coefficients(
+            x.iloc[indices].reset_index(drop=True),
+            y.iloc[indices].reset_index(drop=True),
+            model_kind=model_kind,
+            alpha=alpha,
+            l1_ratio=l1_ratio,
+            self_predictor_mode=self_predictor_mode,
+            max_iter=max_iter,
+            coefficient_tolerance=coefficient_tolerance,
+        )
+        merged_edges = edges.merge(
+            edge_coefficients[["source", "target", "coefficient", "score", "selected"]],
+            on=["source", "target"],
+            how="left",
+        )
+        coefficient_sum += merged_edges["coefficient"].fillna(0.0).to_numpy(dtype=float)
+        abs_coefficient_sum += merged_edges["score"].fillna(0.0).to_numpy(dtype=float)
+        selected_sum += merged_edges["selected"].fillna(False).to_numpy(dtype=bool)
+
+        if not self_coefficients.empty:
+            saw_self_coefficients = True
+            merged_self = target_names.merge(self_coefficients, on="target", how="left")
+            self_coefficient_sum += merged_self["self_coefficient"].fillna(0.0).to_numpy(dtype=float)
+            self_abs_sum += merged_self["self_abs_coefficient"].fillna(0.0).to_numpy(dtype=float)
+            self_selected_sum += merged_self["self_selected"].fillna(False).to_numpy(dtype=bool)
+
+    n_resamples = len(resample_indices)
+    edge_summary = edges.copy()
+    edge_summary["selection_frequency"] = selected_sum / n_resamples
+    edge_summary["mean_coefficient"] = coefficient_sum / n_resamples
+    edge_summary["mean_abs_coefficient"] = abs_coefficient_sum / n_resamples
+
+    if not saw_self_coefficients:
+        return edge_summary, pd.DataFrame(
+            columns=[
+                "target",
+                "self_selection_frequency",
+                "mean_self_coefficient",
+                "mean_abs_self_coefficient",
+            ]
+        )
+
+    self_summary = target_names.copy()
+    self_summary["self_selection_frequency"] = self_selected_sum / n_resamples
+    self_summary["mean_self_coefficient"] = self_coefficient_sum / n_resamples
+    self_summary["mean_abs_self_coefficient"] = self_abs_sum / n_resamples
+    return edge_summary, self_summary
+
+
+def build_dynamic_sparse_linear_grid(
+    *,
+    lasso_alphas: Sequence[float],
+    elastic_net_alphas: Sequence[float],
+    elastic_net_l1_ratios: Sequence[float],
+    target_types: Sequence[str] = ("level", "delta"),
+) -> pd.DataFrame:
+    """Return the focused sparse-linear validation grid."""
+    rows: list[dict[str, float | str | None]] = []
+    for target_type in target_types:
+        for self_mode in ["include_self_predictor_no_self_edge", "exclude_self_predictor"]:
+            for alpha in lasso_alphas:
+                rows.append(
+                    {
+                        "model_kind": "lasso",
+                        "target_type": target_type,
+                        "self_predictor_mode": self_mode,
+                        "alpha": float(alpha),
+                        "l1_ratio": None,
+                        "method": (
+                            f"dynamic_lasso_{target_type}_{_short_self_mode(self_mode)}"
+                            f"_a{_format_alpha(alpha)}"
+                        ),
+                    }
+                )
+        for alpha in elastic_net_alphas:
+            for l1_ratio in elastic_net_l1_ratios:
+                rows.append(
+                    {
+                        "model_kind": "elastic_net",
+                        "target_type": target_type,
+                        "self_predictor_mode": "include_self_predictor_no_self_edge",
+                        "alpha": float(alpha),
+                        "l1_ratio": float(l1_ratio),
+                        "method": (
+                            f"dynamic_elastic_net_{target_type}_include_self"
+                            f"_a{_format_alpha(alpha)}_l1_{_format_alpha(l1_ratio)}"
+                        ),
+                    }
+                )
+    return pd.DataFrame(rows)
 
 
 def rank_edges_by_dynamic_tree_ensemble(
@@ -311,6 +508,23 @@ def _make_tree_ensemble(
     return ExtraTreesRegressor(**kwargs)
 
 
+def _make_linear_model(
+    model_kind: LinearModelKind,
+    *,
+    alpha: float,
+    l1_ratio: float | None,
+    max_iter: int,
+) -> Lasso | ElasticNet:
+    """Create the requested sparse linear model."""
+    if model_kind == "lasso":
+        return Lasso(alpha=alpha, fit_intercept=False, max_iter=max_iter)
+    if model_kind == "elastic_net":
+        if l1_ratio is None:
+            raise ValueError("l1_ratio is required for elastic_net")
+        return ElasticNet(alpha=alpha, l1_ratio=l1_ratio, fit_intercept=False, max_iter=max_iter)
+    raise ValueError("model_kind must be 'lasso' or 'elastic_net'")
+
+
 def _permutation_importance(
     model: MLPRegressor,
     x_values: np.ndarray,
@@ -377,3 +591,13 @@ def _sort_ranked_edges(edges: pd.DataFrame) -> pd.DataFrame:
         ["score", "source", "target"],
         ascending=[False, True, True],
     ).reset_index(drop=True)
+
+
+def _short_self_mode(self_mode: str) -> str:
+    """Return compact self-predictor mode text for method names."""
+    return "exclude_self" if self_mode == "exclude_self_predictor" else "include_self"
+
+
+def _format_alpha(alpha: float) -> str:
+    """Format a regularization value for method names."""
+    return str(alpha).replace(".", "_")
