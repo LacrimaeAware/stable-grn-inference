@@ -33,8 +33,14 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | GNW sweep design | `experiments/12_gnw_sweep_design/gnw_sweep_design.md` | How would we test whether these findings generalize under controlled GeneNetWeaver simulation? (design scaffold) |
 | Mechanism audit | `experiments/13_dream4_mechanism_audit/run_mechanism_audit.py` | Why do the current winners work or fail (alpha/density, persistence, fusion complementarity, edge-vs-topology, target choice)? |
 | Calibrated confidence | `experiments/14_dream4_calibrated_confidence/run_calibrated_confidence.py` | Can the findings become a deployable, gold-free edge-confidence rule (alpha selection + agreement confidence + calibration + topology layer)? |
+| Modern benchmark scouting | `experiments/15_modern_grn_benchmark_adapter/modern_grn_benchmark_adapter.md` | Which modern GRN benchmark should validate the pipeline beyond DREAM4/GNW? (chose BEELINE) |
+| BEELINE adapter smoke | `experiments/16_beeline_adapter_smoke/run_beeline_adapter_smoke.py` | Can the pipeline ingest BEELINE-format single-cell datasets and run static methods end-to-end? |
 
 Generated outputs are saved under ignored `results/tables/`.
+
+## Modern-Benchmark Direction (single-cell)
+
+Beyond DREAM4/GNW, the project is moving toward modern single-cell GRN benchmarks. Experiment 15 scouted candidates (BEELINE, CausalBench, raw Perturb-seq, curated priors) and chose **BEELINE** as the first target (lowest-friction transfer: expression matrix + directed reference + AUPR/precision@k/EPR). Experiment 16 implemented the adapter (`src/stable_grn_inference/data/beeline.py`: `GrnBenchmarkDataset` + `load_beeline_dataset`) and smoke-tested it on a synthetic BEELINE-format fixture. Correlation, GENIE3/trees, static sparse LASSO, and rank fusion transfer directly; dynamic lagged/include-self methods do not (no time/pseudotime); references are biological proxies (report EPR, not just AUPR); candidate edges are TF→gene. No real BEELINE data is committed; place datasets under `data/raw/beeline/`.
 
 ## 1. Size10 Multifactorial Method Comparison
 

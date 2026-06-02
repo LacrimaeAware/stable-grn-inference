@@ -1,5 +1,14 @@
 """Data loading helpers for DREAM4/GeneNetWeaver-style experiments."""
 
+from .beeline import (
+    GrnBenchmarkDataset,
+    build_tf_to_gene_candidate_edges,
+    infer_expression_orientation,
+    label_candidate_edges,
+    load_beeline_dataset,
+    read_beeline_expression,
+    read_beeline_reference_edges,
+)
 from .dream4 import (
     SIZE10_DATA_REGIMES,
     SIZE100_DATA_REGIMES,
@@ -20,6 +29,13 @@ from .timeseries import (
 )
 
 __all__ = [
+    "GrnBenchmarkDataset",
+    "build_tf_to_gene_candidate_edges",
+    "infer_expression_orientation",
+    "label_candidate_edges",
+    "load_beeline_dataset",
+    "read_beeline_expression",
+    "read_beeline_reference_edges",
     "SIZE10_DATA_REGIMES",
     "SIZE100_DATA_REGIMES",
     "build_dynamic_target",

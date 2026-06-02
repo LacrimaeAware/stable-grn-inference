@@ -55,6 +55,14 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - GNW is not yet installed; the experiment-11 detector reports availability and execution is not blocked on it.
 - Use GeneNetWeaver synthetic networks to vary noise, sampling length, perturbation setting, and network size, and measure where calibrated dynamic sparse inference and rank fusion help, fail, or change calibration.
 
+## Phase 5: Modern Benchmark Validation (single-cell)
+
+- Scouted modern GRN benchmarks to validate the calibrated-confidence pipeline beyond DREAM4/GNW (experiment 15): compared BEELINE, CausalBench, raw Perturb-seq/CRISPR, and curated-prior sources.
+- Chosen first target: **BEELINE** (single-cell GRN benchmark). It is the lowest-friction transfer (expression matrix + directed reference + AUPR/precision@k/EPR, same shape as DREAM4), real single-cell data, and mature/maintained. CausalBench (interventional Perturb-seq) is the planned second step once a single-cell adapter exists.
+- Key adapter changes vs DREAM4: candidate edges become TF->gene (regulator-restricted), references are noisy proxies/interventional rather than exact gold (report EPR + a `reference_kind` label), and scale/preprocessing (sparse, zero-inflated, thousands of genes) needs normalization and avoiding O(n^3) topology (FFL).
+- Implemented the BEELINE adapter (experiment 16): `src/stable_grn_inference/data/beeline.py` provides `GrnBenchmarkDataset` + `load_beeline_dataset` + helpers (orientation detection, log1p, TF→gene candidates, densified labels). Smoke-tested on a synthetic BEELINE-format fixture; correlation/GENIE3/static-LASSO/fusion run end-to-end via the existing scorers. Dynamic lagged/include-self methods are marked not-applicable to static single-cell.
+- Next coding step: obtain one small real BEELINE dataset under `data/raw/beeline/<name>/` (ExpressionData.csv + refNetwork.csv, optional TFs.csv/PseudoTime.csv) and run a fuller experiment that applies the experiment-14 calibrated-confidence/fusion methods with EPR reporting (no new models). CausalBench remains the planned second target.
+
 ## Optional Later Work
 
 - Signal-denoising preprocessing is now runnable: PyWavelets is installed (`requirements.txt`), and the experiment 08 wavelet-denoise ablation runs as a real variant (slightly hurts the Size10 RF baseline, AUPR 0.519 vs 0.537 raw). Graph-wavelet / wavelet-scattering preprocessing can be explored next.

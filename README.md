@@ -21,6 +21,7 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Compare dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion across Size10 and Size100, and scaffold a GeneNetWeaver simulation-sweep design.
 - Run a mechanism audit that explains the findings: alpha as a density knob, include-self as a persistence control, fusion via complementary errors, edge-vs-topology disagreement, and level-vs-delta target quality.
 - Build a deployable, gold-free calibrated-confidence pipeline: select alpha without gold labels (CV/BIC), rank edges by equal-weight method-agreement confidence, check calibration, and keep topology objectives in a separate decision layer.
+- Begin a modern single-cell direction: scout modern GRN benchmarks (choose BEELINE) and add a BEELINE adapter (`data/beeline.py`) so the pipeline ingests single-cell datasets (TF→gene candidates, proxy references, EPR), smoke-tested on a synthetic fixture.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
 
