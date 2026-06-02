@@ -3,7 +3,9 @@
 Synthetic fixtures only; no real CausalBench/Replogle download required.
 """
 
+import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -12,7 +14,9 @@ from stable_grn_inference.data import (
     build_candidate_edges_from_perturbations,
     interventional_effect_matrix,
     interventional_orientation_asymmetry,
+    load_causalbench,
     load_interventional_frames,
+    load_replogle_raw_h5ad,
     make_synthetic_interventional,
 )
 
@@ -87,6 +91,66 @@ class SyntheticSemTest(unittest.TestCase):
         result = interventional_orientation_asymmetry(ds)
         self.assertGreaterEqual(result["n_pairs_both_perturbed"], 1)
         self.assertGreaterEqual(result["accuracy"], 0.9)
+
+
+class CausalBenchLoaderTest(unittest.TestCase):
+    def test_load_causalbench_from_synthetic_h5ad(self):
+        try:
+            import anndata as ad
+        except Exception:  # pragma: no cover
+            self.skipTest("anndata not installed")
+        rng = np.random.default_rng(0)
+        genes = ["GA", "GB", "GC", "GD"]
+        # cells: 150 control + 150 each perturbing GA, GB (GC/GD never perturbed)
+        obs_gene, X = [], []
+        for label, n in [("non-targeting", 150), ("GA", 150), ("GB", 150)]:
+            obs_gene += [label] * n
+            X.append(rng.poisson(5, size=(n, len(genes))))
+        X = np.vstack(X).astype(float)
+        import pandas as pd
+
+        adata = ad.AnnData(
+            X=X,
+            obs=pd.DataFrame({"gene": obs_gene}),
+            var=pd.DataFrame({"gene_name": genes}, index=genes),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "mini.h5ad"
+            adata.write_h5ad(p)
+            ds = load_causalbench(p, min_cells_per_perturbation=100, perturbed_genes_only=True)
+        # only GA, GB pass the >100-cell floor and are measured -> kept as perturbed cols
+        self.assertEqual(set(ds.perturbed_genes), {"GA", "GB"})
+        self.assertEqual(ds.metadata["n_control_cells"], 150)
+        self.assertTrue(set(ds.candidate_edges["source"]) <= {"GA", "GB"})
+        self.assertGreater(ds.metadata["n_cells"], 0)
+
+
+class ReplogleRawLoaderTest(unittest.TestCase):
+    def test_chunked_raw_loader_on_synthetic_dense_h5ad(self):
+        try:
+            import anndata as ad
+        except Exception:  # pragma: no cover
+            self.skipTest("anndata not installed")
+        rng = np.random.default_rng(1)
+        genes = ["GA", "GB", "GC", "GD"]
+        obs_gene, blocks = [], []
+        for label, n in [("non-targeting", 40), ("GA", 80), ("GB", 80)]:
+            obs_gene += [label] * n
+            blocks.append(rng.poisson(4, size=(n, len(genes))).astype("float32"))
+        X = np.vstack(blocks)
+        obs = pd.DataFrame({"gene": obs_gene, "UMI_count": X.sum(axis=1)})
+        var = pd.DataFrame({"gene_name": genes}, index=genes)
+        adata = ad.AnnData(X=X, obs=obs, var=var)
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "raw.h5ad"
+            adata.write_h5ad(p)
+            # chunk smaller than n to exercise the chunked-read path
+            ds = load_replogle_raw_h5ad(p, min_cells=50, chunk=37)
+        self.assertEqual(set(ds.perturbed_genes), {"GA", "GB"})       # >50 cells & measured
+        self.assertEqual(list(ds.expression.columns), ["GA", "GB"])    # perturbed&measured block
+        self.assertEqual(ds.metadata["n_control_cells"], 40)
+        self.assertEqual(ds.metadata["n_cells"], 200)                  # 40 + 80 + 80
+        self.assertTrue(np.isfinite(ds.expression.to_numpy()).all())   # normalized + log1p
 
 
 if __name__ == "__main__":

@@ -61,6 +61,8 @@ experiments/16_beeline_adapter_smoke/beeline_adapter_smoke.md
 experiments/17_dream4_stability_orientation_diagnostics/stability_orientation_diagnostics.md
 experiments/18_beeline_diagnostics/beeline_diagnostics.md
 experiments/19_interventional_grn_benchmark_scouting/interventional_benchmark_scouting.md
+experiments/20_causalbench_rpe1_interventional/causalbench_rpe1_interventional.md
+data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
 private_docs/dev_journal/2026-06-02.md

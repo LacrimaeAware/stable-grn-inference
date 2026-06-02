@@ -378,3 +378,194 @@ def detect_causalbench(search_dirs: list[Path] | None = None) -> dict:
         if Path(d).exists():
             info["data_dirs_found"].append(str(d))
     return info
+
+
+# CausalBench / Weissmann (Replogle) figshare downloads, for reference. We do not
+# auto-download in the library; an experiment or the user fetches these explicitly.
+CAUSALBENCH_FILES = {
+    "rpe1": "https://plus.figshare.com/ndownloader/files/35775606",
+    "k562": "https://plus.figshare.com/ndownloader/files/35773219",
+}
+
+
+def _normalize_per_cell_log1p(counts: np.ndarray) -> np.ndarray:
+    """Replicate CausalBench preprocessing: scanpy normalize_per_cell (scale each cell to
+    the median total count) then log1p. ``counts`` is cells x genes raw counts."""
+    totals = counts.sum(axis=1)
+    median = np.median(totals[totals > 0]) if np.any(totals > 0) else 1.0
+    scale = np.divide(median, totals, out=np.ones_like(totals, dtype=float), where=totals > 0)
+    normed = counts * scale[:, None]
+    return np.log1p(normed)
+
+
+def load_causalbench(
+    h5ad_path: str | Path,
+    *,
+    name: str | None = None,
+    min_cells_per_perturbation: int = 100,
+    perturbed_genes_only: bool = True,
+    control_obs_value: str = "non-targeting",
+    gene_col: str = "gene",
+    reference_edges: pd.DataFrame | None = None,
+    reference_kind: str = "perturbation_derived",
+) -> InterventionalDataset:
+    """Load a CausalBench Weissmann/Replogle Perturb-seq ``.h5ad`` into an
+    :class:`InterventionalDataset`.
+
+    Mirrors CausalBench's own preprocessing: per-cell normalization + log1p, keep
+    perturbations with > ``min_cells_per_perturbation`` cells, and (when
+    ``perturbed_genes_only``) restrict the gene columns to the intersection of
+    *measured* and *perturbed* genes - the square block on which the interventional
+    effect / orientation diagnostics are defined. ``obs[gene_col] == control_obs_value``
+    marks observational/control cells (mapped to ``CONTROL_LABEL``).
+
+    Requires ``anndata`` (read-only); no network access.
+    """
+    import anndata as ad
+
+    h5ad_path = Path(h5ad_path)
+    adata = ad.read_h5ad(h5ad_path)
+
+    # gene (column) names: prefer var['gene_name'] if present, else var index
+    if "gene_name" in adata.var.columns:
+        var_genes = [str(g) for g in adata.var["gene_name"].to_numpy()]
+    else:
+        var_genes = [str(g) for g in adata.var_names]
+
+    counts = adata.X
+    counts = counts.toarray() if hasattr(counts, "toarray") else np.asarray(counts)
+    expr = _normalize_per_cell_log1p(counts.astype(float))
+
+    per_cell_gene = [str(g) for g in adata.obs[gene_col].to_numpy()]
+    labels = pd.Series(
+        [CONTROL_LABEL if g == control_obs_value else g for g in per_cell_gene]
+    )
+
+    # perturbations passing the cell-count floor (excluding control)
+    counts_by_pert = labels[labels != CONTROL_LABEL].value_counts()
+    kept_perts = {
+        g for g, c in counts_by_pert.items()
+        if c > min_cells_per_perturbation and g in set(var_genes)
+    }
+
+    expr_df = pd.DataFrame(expr, columns=var_genes)
+    # collapse duplicate gene-name columns (Perturb-seq var can repeat names) by mean
+    if expr_df.columns.duplicated().any():
+        expr_df = expr_df.T.groupby(level=0).mean().T
+        var_genes = list(expr_df.columns)
+
+    if perturbed_genes_only:
+        keep_cols = [g for g in expr_df.columns if g in kept_perts]
+        expr_df = expr_df[keep_cols]
+
+    cells = [f"cell{i}" for i in range(expr_df.shape[0])]
+    expr_df.index = cells
+    labels.index = cells
+    # relabel interventions on dropped perturbations back to their gene name is fine;
+    # load_interventional_frames intersects perturbed genes with measured columns.
+
+    return load_interventional_frames(
+        name or h5ad_path.stem,
+        expr_df,
+        labels,
+        reference_edges=reference_edges,
+        reference_kind=reference_kind,
+        control_label=CONTROL_LABEL,
+    )
+
+
+def _decode_h5_categorical(node, categories_group, key):
+    """Decode an AnnData categorical column (modern group of codes+categories, or legacy
+    codes dataset + a shared ``__categories`` group), else a plain string/bytes column."""
+    import h5py
+
+    def _dec(arr):
+        return np.array([x.decode() if isinstance(x, bytes) else x for x in arr])
+
+    if isinstance(node, h5py.Group) and "codes" in node:
+        return _dec(node["categories"][:])[node["codes"][:]]
+    if categories_group is not None and key in categories_group:
+        return _dec(categories_group[key][:])[node[:]]
+    return _dec(node[:])
+
+
+def load_replogle_raw_h5ad(
+    path: str | Path,
+    *,
+    name: str = "replogle",
+    min_cells: int = 100,
+    max_perturbations: int | None = None,
+    chunk: int = 20000,
+    control_label: str = "non-targeting",
+    gene_col: str = "gene",
+    gene_name_col: str = "gene_name",
+    umi_col: str = "UMI_count",
+) -> InterventionalDataset:
+    """Memory-efficient loader for a LARGE raw Replogle/Weissman Perturb-seq ``.h5ad``
+    whose ``X`` is stored dense (e.g. RPE1: 247914 cells x 8749 genes, ~8.7 GB).
+
+    Reads only the perturbed&measured gene-column block in row chunks (never densifying
+    all genes), normalizes each cell by ``obs[umi_col]`` (= scanpy ``normalize_per_cell``
+    to the median total count) then ``log1p`` - matching CausalBench preprocessing - and
+    assembles an :class:`InterventionalDataset`. Keeps perturbations with more than
+    ``min_cells`` cells; ``max_perturbations`` optionally caps to the most-sampled ones.
+
+    Requires ``h5py``. No network access. Reference is left empty (real Perturb-seq has no
+    exact directed truth); build an interventional reference downstream.
+    """
+    import collections
+
+    import h5py
+
+    path = Path(path)
+    f = h5py.File(path, "r")
+    try:
+        obs_cat = f["obs"].get("__categories")
+        var_cat = f["var"].get("__categories")
+        labels = _decode_h5_categorical(f["obs"][gene_col], obs_cat, gene_col)
+        umi = f["obs"][umi_col][:].astype(float)
+        gene_names = _decode_h5_categorical(f["var"][gene_name_col], var_cat, gene_name_col)
+
+        measured_first_idx: dict[str, int] = {}
+        for i, g in enumerate(gene_names):
+            measured_first_idx.setdefault(str(g), i)
+
+        counts = collections.Counter(labels.tolist())
+        kept = [g for g, c in counts.items()
+                if g != control_label and g in measured_first_idx and c > min_cells]
+        kept.sort(key=lambda g: -counts[g])
+        if max_perturbations is not None:
+            kept = kept[:max_perturbations]
+        col_idx = np.array([measured_first_idx[g] for g in kept], dtype=int)
+        kept_set = set(kept)
+
+        keep_row = (labels == control_label) | np.isin(labels, list(kept_set))
+        median_umi = float(np.median(umi[umi > 0])) if np.any(umi > 0) else 1.0
+
+        n = labels.shape[0]
+        out_blocks = []
+        X = f["X"]
+        for start in range(0, n, chunk):
+            sl = slice(start, min(start + chunk, n))
+            rmask = keep_row[sl]
+            if not rmask.any():
+                continue
+            block = np.asarray(X[sl])[rmask][:, col_idx].astype(float)
+            u = umi[sl][rmask].copy()
+            u[u <= 0] = 1.0
+            out_blocks.append(np.log1p(block / u[:, None] * median_umi).astype(np.float32))
+        expr = np.vstack(out_blocks) if out_blocks else np.zeros((0, len(kept)), dtype=np.float32)
+        kept_labels = labels[keep_row]
+    finally:
+        f.close()
+
+    expr_df = pd.DataFrame(expr, columns=kept)
+    labels_series = pd.Series(
+        [CONTROL_LABEL if l == control_label else l for l in kept_labels]
+    )
+    ds = load_interventional_frames(
+        name, expr_df, labels_series, reference_kind="perturbation_derived"
+    )
+    ds.metadata["source_file"] = path.name
+    ds.metadata["min_cells_per_perturbation"] = min_cells
+    return ds
