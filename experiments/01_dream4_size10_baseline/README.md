@@ -22,11 +22,18 @@ The expression files are the input data. The gold-standard files are the answer 
 
 - `correlation`: ranks all directed non-self edges by absolute pairwise gene-expression correlation.
 - `lasso_alpha_0_01`: for each target gene, fits a LASSO model using all other genes as predictors, then ranks directed edges by absolute coefficient magnitude.
+- `run_method_comparison.py` also audits a small LASSO alpha grid, a small Elastic Net grid, and a random-forest feature-importance baseline.
 
 ## Run
 
 ```powershell
 $env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -B experiments\01_dream4_size10_baseline\run_correlation_baseline.py
+```
+
+Run the broader comparison/audit checkpoint:
+
+```powershell
+$env:PYTHONPATH='src'; .\.venv\Scripts\python.exe -B experiments\01_dream4_size10_baseline\run_method_comparison.py
 ```
 
 Outputs are written under:
@@ -46,4 +53,5 @@ results/tables/
 - Uses only Size10 multifactorial expression data.
 - Does not use time-series data, perturbation labels, bootstrap resampling, or stability selection.
 - LASSO uses a fixed regularization value rather than tuned or stability-calibrated sparsity.
+- The method-comparison script includes small grids, but does not use cross-validation or held-out model selection.
 - These are simple baseline rankings, not causal validation of inferred regulation.
