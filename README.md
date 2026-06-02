@@ -2,7 +2,7 @@
 
 Stability-aware sparse inference for recovering gene regulatory networks from noisy time-series and perturbation data.
 
-This repository is a minimal starting scaffold for a research-engineering project on stability-aware sparse gene regulatory network inference. The current work is focused on DREAM4 Size10 baselines and small stability audits before moving to richer data or larger networks.
+This repository is a minimal starting scaffold for a research-engineering project on stability-aware sparse gene regulatory network inference. The work so far is focused on DREAM4 Size10 baselines and small stability audits, plus a first DREAM4 Size100 scaling check on the leading dynamic sparse candidate.
 
 ## Current Milestone
 
@@ -17,8 +17,11 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Run a first lagged Size10 time-series audit using within-trajectory source(t) to target(t+1) samples.
 - Run a broad dynamic model batch comparing sparse linear, tree, MLP, stability, rank-fusion, and preprocessing variants.
 - Validate the strongest dynamic sparse-linear candidate for alpha sensitivity, self-persistence, bootstrap behavior, reciprocal errors, and topology metrics.
+- Scale the dynamic sparse candidate to DREAM4 Size100 time-series data as a first scaling check.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
+
+The Size100 scaling check is a cautionary result: the Size10 candidate `dynamic_lasso_level_include_self_a0_03` does not reproduce its advantage on Size100, so it is kept as a Size10 finding rather than promoted to a main method. See `docs/experiment_summary.md` for details.
 
 ## Track A Scope
 

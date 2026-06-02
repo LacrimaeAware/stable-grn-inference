@@ -199,17 +199,19 @@ def reciprocal_false_positive_edge_count(
 
 
 def feed_forward_loop_count(adjacency: pd.DataFrame) -> int:
-    """Count directed feed-forward loops ``A -> B``, ``B -> C``, ``A -> C``."""
-    count = 0
-    genes = list(adjacency.index)
-    for source, middle, target in itertools.permutations(genes, 3):
-        if (
-            adjacency.loc[source, middle] == 1
-            and adjacency.loc[middle, target] == 1
-            and adjacency.loc[source, target] == 1
-        ):
-            count += 1
-    return count
+    """Count directed feed-forward loops ``A -> B``, ``B -> C``, ``A -> C``.
+
+    For a 0/1 adjacency matrix ``A`` with a zero diagonal, the number of
+    distinct ordered triples ``(source, middle, target)`` forming a
+    feed-forward loop equals ``sum(A * (A @ A))``: ``(A @ A)[s, t]`` counts the
+    intermediate nodes ``b`` with ``A[s, b] = A[b, t] = 1`` (the zero diagonal
+    drops the ``b = s`` and ``b = t`` terms), and multiplying by ``A[s, t]``
+    keeps only pairs that also have the closing edge. This vectorized form is
+    equivalent to enumerating triples but scales to 100-gene networks.
+    """
+    values = adjacency.to_numpy(dtype=np.int64, copy=True)
+    np.fill_diagonal(values, 0)
+    return int((values * (values @ values)).sum())
 
 
 def hub_edge_precision_recall(
@@ -306,8 +308,10 @@ def topology_metrics_for_cutoff(
         ),
         "top1_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=1),
         "top3_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=3),
+        "top5_out_hub_overlap": top_hub_overlap(true_out_degree, predicted_out_degree, top_n=5),
         "top1_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=1),
         "top3_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=3),
+        "top5_in_hub_overlap": top_hub_overlap(true_in_degree, predicted_in_degree, top_n=5),
         "reciprocal_pair_count": reciprocal_pairs,
         "reciprocal_false_positive_pair_count": reciprocal_false_pairs,
         "reciprocal_false_positive_edge_count": reciprocal_false_positive_edge_count(

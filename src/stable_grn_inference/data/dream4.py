@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 
 SIZE10_DATA_REGIMES = ("multifactorial", "knockouts", "knockdowns", "timeseries")
+SIZE100_DATA_REGIMES = ("knockouts", "knockdowns", "timeseries", "wildtype")
 
 
 def _normalize_gene_id(value: object) -> str:
@@ -125,7 +126,60 @@ def dream4_size10_gold_standard_path(root: str | Path, network_id: int) -> Path:
     )
 
 
+def dream4_size100_expression_path(
+    root: str | Path,
+    network_id: int,
+    data_regime: str,
+) -> Path:
+    """Return the local DREAM4 Size100 expression path for one data regime.
+
+    Parameters
+    ----------
+    root:
+        DREAM4 raw-data root, usually ``data/raw/dream4``.
+    network_id:
+        DREAM4 Size100 network number, from 1 through 5.
+    data_regime:
+        One of ``knockouts``, ``knockdowns``, ``timeseries``, or ``wildtype``.
+        Size100 multifactorial files live in a separate top-level directory and
+        are not addressed by this helper.
+    """
+    _validate_size100_network_id(network_id)
+    if data_regime not in SIZE100_DATA_REGIMES:
+        choices = ", ".join(SIZE100_DATA_REGIMES)
+        raise ValueError(f"data_regime must be one of: {choices}")
+
+    return (
+        Path(root)
+        / "DREAM4_InSilico_Size100"
+        / f"insilico_size100_{network_id}"
+        / f"insilico_size100_{network_id}_{data_regime}.tsv"
+    )
+
+
+def dream4_size100_gold_standard_path(root: str | Path, network_id: int) -> Path:
+    """Return the local DREAM4 Size100 gold-standard edge path.
+
+    The Size100 gold-standard files are headerless three-column tables with
+    9900 rows, one per directed non-self gene pair for the 100 genes.
+    """
+    _validate_size100_network_id(network_id)
+    return (
+        Path(root)
+        / "DREAM4_InSilicoNetworks_GoldStandard"
+        / "DREAM4_Challenge2_GoldStandards"
+        / "Size 100"
+        / f"DREAM4_GoldStandard_InSilico_Size100_{network_id}.tsv"
+    )
+
+
 def _validate_size10_network_id(network_id: int) -> None:
     """Validate a DREAM4 Size10 network id."""
+    if network_id not in range(1, 6):
+        raise ValueError("network_id must be between 1 and 5")
+
+
+def _validate_size100_network_id(network_id: int) -> None:
+    """Validate a DREAM4 Size100 network id."""
     if network_id not in range(1, 6):
         raise ValueError("network_id must be between 1 and 5")

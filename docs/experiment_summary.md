@@ -13,7 +13,7 @@ Data regimes tested so far:
 - `knockdowns`
 - `timeseries`, first treated as same-time observations and then tested with adjacent one-step lagged samples
 
-No Size100 scaling or final stability-aware method has been implemented yet. The current lagged time-series audit is a first pass, not a full dynGENIE3 implementation.
+A first DREAM4 Size100 time-series scaling audit has now been run for the dynamic sparse candidate (experiment 9 below is Size10; experiment 10 is Size100). No final stability-aware method has been implemented yet, and the current lagged time-series work is still a first pass, not a full dynGENIE3 implementation.
 
 ## Experiments
 
@@ -28,6 +28,7 @@ No Size100 scaling or final stability-aware method has been implemented yet. The
 | Lagged time-series audit | `experiments/07_dream4_size10_lagged_timeseries/run_lagged_timeseries_audit.py` | Does using temporal order improve directed edge recovery over same-time scoring? |
 | Dynamic model batch | `experiments/08_dream4_size10_dynamic_model_batch/run_dynamic_model_batch_audit.py` | Which evidence types help most: dynamic targets, trees, sparse linear models, MLPs, stability, fusion, or preprocessing? |
 | Dynamic sparse validation | `experiments/09_dream4_size10_dynamic_sparse_validation/run_dynamic_sparse_validation.py` | Is the best dynamic sparse-linear result robust, interpretable, and not just a self-persistence artifact? |
+| Size100 dynamic sparse scaling | `experiments/10_dream4_size100_dynamic_sparse_scaling/run_size100_dynamic_sparse_scaling.py` | Does the Size10 dynamic sparse candidate survive on DREAM4 Size100 time-series data? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -251,6 +252,34 @@ Validation findings:
 - The best sparse dynamic model sharply reduces reciprocal false-positive pair rate compared with lagged GENIE3 and lagged correlation references.
 - Topology agrees partially, not completely. The edge-metric winner has top-3 out-hub overlap 0.466667 and top-3 in-hub overlap 0.600000, while other sparse variants win the best hub-overlap metrics.
 
+## 9. Size100 Dynamic Sparse Scaling
+
+This audit scaled the Size10 main candidate `dynamic_lasso_level_include_self_a0_03` to the five DREAM4 Size100 time-series networks (100 genes, 10 trajectories of 21 points, 200 lagged samples, 9900 directed non-self candidate edges, ~2% true-edge density). It kept a compact method set: the include-self candidate, a stronger-alpha include-self LASSO, a matched exclude-self control, lagged correlation, an Elastic Net include-self variant, and reduced-tree (200) lagged GENIE3 references.
+
+Mean results across the five Size100 networks:
+
+| Method | Mean AUROC | Mean AUPR | Mean P@10 | Self/Non-Self Ratio | Reciprocal FP Pair Rate |
+|---|---:|---:|---:|---:|---:|
+| `dynamic_lasso_level_include_self_a0_1` | 0.658451 | 0.161467 | 0.660000 | 117.05 | 0.950000 |
+| `lagged_genie3_random_forest` | 0.754354 | 0.145445 | 0.500000 | n/a | 0.995122 |
+| `lagged_genie3_extra_trees` | 0.748207 | 0.142816 | 0.500000 | n/a | 0.995652 |
+| `dynamic_lasso_level_include_self_a0_03` | 0.678593 | 0.130486 | 0.460000 | 26.29 | 1.000000 |
+| `lagged_correlation_reference` | 0.702563 | 0.129961 | 0.580000 | n/a | 0.992262 |
+| `dynamic_lasso_level_exclude_self_a0_03` | 0.672371 | 0.119005 | 0.500000 | n/a | 0.992308 |
+| `dynamic_elastic_net_level_include_self_a0_03_l1_0_7` | 0.672042 | 0.111418 | 0.400000 | 16.71 | 1.000000 |
+
+Scaling findings:
+
+- The specific Size10 winner does not scale. `dynamic_lasso_level_include_self_a0_03` only ties lagged correlation on mean AUPR and trails it on mean AUROC, and it wins per-network AUPR on 0 of 5 networks.
+- Best mean AUPR is the higher-alpha sibling `dynamic_lasso_level_include_self_a0_1` (0.161467); the larger, sparser network favors stronger regularization.
+- Best mean AUROC is `lagged_genie3_random_forest` (0.754354), which wins AUROC on all five networks.
+- Include-self still beats exclude-self on mean AUPR by about 0.0115, the same direction as Size10 but small.
+- Self-persistence is even more extreme: the self/non-self absolute coefficient ratio rises to 26.3 at a0.03 (117 at a0.1) versus ~8.9 at Size10, while edge recovery weakens.
+- The distinctive Size10 reciprocal-direction advantage disappears: the candidate's reciprocal false-positive pair rate is 1.00 at Size100, no better than correlation or trees, versus ~0.20 at Size10.
+- Hub recovery is mixed (top-5 out-hub overlap below correlation, in-hub tied) and in-degree recovery is near zero for every method.
+
+Interpretation: the headline Size10 `a0_03` result looks substantially like a small-network effect. The include-self sparse family is not dead - it still leads mean AUPR at a higher alpha - but the specific candidate, and especially its reciprocal-direction advantage, does not reproduce at Size100.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -267,12 +296,13 @@ The current evidence supports a cautious story:
 - The dynamic sparse validation supports `dynamic_lasso_level_include_self_a0_03` as the current Size10 temporal sparse candidate, but it also confirms that self-persistence is a major part of the model and must be validated carefully.
 - Bootstrap sparse selection is not automatically helpful in the dynamic setting tested here. Mean absolute bootstrapped coefficients are close to one-shot coefficients, while selection frequency underperforms.
 - Neural MLP and simple rank fusion are not yet helping in this small-data setting.
+- The Size100 scaling audit weakens the Size10 headline. The specific `dynamic_lasso_level_include_self_a0_03` candidate does not scale: at Size100 it only ties lagged correlation on AUPR, trails it on AUROC, wins 0 of 5 networks, and loses its reciprocal-direction advantage entirely. Higher regularization (`a0_1`) is the best sparse setting at Size100, and lagged GENIE3 wins AUROC on every Size100 network. The include-self sparse family remains worth studying, but the small-network result should not be promoted as a main method.
 
 ## Current Recommendation
 
-The current main candidate is `dynamic_lasso_level_include_self_a0_03` for Size10 temporal sparse inference. It is strong enough to preserve as the leading sparse branch, but not strong enough to overclaim.
+The Size10 candidate `dynamic_lasso_level_include_self_a0_03` should be kept as a documented Size10 finding, not promoted to a main method. The Size100 scaling audit shows its advantage does not reproduce at scale: it ties correlation on AUPR, trails it on AUROC, and loses the reciprocal-direction advantage that made it interesting at Size10. At Size100, stronger regularization (`a0_1`) is the best sparse setting and lagged GENIE3 is the AUROC leader.
 
-The next branch should validate the self-persistence mechanism against either Size100 time-series data, GeneNetWeaver simulation sweeps, or a literature-faithful dynGENIE3 reproduction. A refined dynGENIE3 comparison is the cleanest methodological check; Size100 is the cleanest scaling check.
+The next branch should (1) consolidate and honestly report this negative scaling result, (2) add a literature-faithful dynamic baseline (dynGENIE3) so the sparse family is compared against the right reference at Size100, and (3) use GeneNetWeaver simulation sweeps to vary noise, trajectory length, and network size and locate where, if anywhere, include-self sparsity actually helps. New data branches (perturbation/knockout dynamics) should wait until a faithful dynamic baseline is in place.
 
 ## Caveats
 

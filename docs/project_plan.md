@@ -31,7 +31,9 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Current dynamic batch result: sparse linear level-target models with `include_self_predictor_no_self_edge` win mean AUPR/AUROC. Rank fusion, simple MLP, and moving-average preprocessing do not beat the best single dynamic model.
 - Added a focused validation audit for the dynamic sparse-linear include-self result.
 - Current dynamic sparse validation result: `dynamic_lasso_level_include_self_a0_03` remains the best Size10 temporal sparse candidate by mean AUPR/AUROC, improves reciprocal false-positive behavior relative to lagged GENIE3 references, and has partially encouraging topology metrics. However, it wins per-network AUPR on only 2 of 5 networks and relies heavily on self-persistence, so it needs validation on richer data or a literature-faithful dynGENIE3 comparison.
-- Next: validate the self-persistence mechanism on Size100 time-series data, GeneNetWeaver simulation sweeps, or a refined dynGENIE3-style temporal baseline before treating it as the main method.
+- Added the first DREAM4 Size100 time-series scaling audit for the dynamic sparse candidate.
+- Current Size100 scaling result: the Size10 winner does not scale. `dynamic_lasso_level_include_self_a0_03` ties lagged correlation on mean AUPR, trails it on mean AUROC, wins 0 of 5 Size100 networks, and loses its reciprocal-direction advantage (pair rate 1.00 vs ~0.20 at Size10). Stronger regularization (`a0_1`) is the best sparse setting at Size100, lagged GENIE3 wins mean AUROC and every per-network AUROC, and self-persistence is even more extreme (self/non-self ratio ~26 vs ~8.9). The include-self sparse family stays worth studying but should not be promoted as a main method.
+- Next: consolidate and report the negative scaling result, add a literature-faithful dynGENIE3 baseline for a fair Size100 comparison, and run GeneNetWeaver simulation sweeps to find where include-self sparsity actually helps before opening new perturbation/knockout data branches.
 
 ## Phase 3: Sparsity Calibration and Topology-Aware Evaluation
 

@@ -51,6 +51,8 @@ experiments/06_dream4_size10_topology_evaluation/topology_evaluation.md
 experiments/07_dream4_size10_lagged_timeseries/lagged_timeseries_audit.md
 experiments/08_dream4_size10_dynamic_model_batch/dynamic_model_batch_audit.md
 experiments/09_dream4_size10_dynamic_sparse_validation/dynamic_sparse_validation.md
+experiments/10_dream4_size100_dynamic_sparse_scaling/size100_dynamic_sparse_scaling.md
 private_docs/dev_journal/2026-06-01.md
+private_docs/dev_journal/2026-06-02.md
 results/tables/                    # ignored generated outputs
 ```
