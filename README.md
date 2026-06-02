@@ -14,6 +14,8 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Run bootstrap/subsampling stability audits on Size10 multifactorial data.
 - Compare Size10 data regimes and a GENIE3-style tree ensemble baseline.
 - Add topology-aware evaluation for hubs, degree patterns, reciprocal edges, and simple motifs.
+- Run a first lagged Size10 time-series audit using within-trajectory source(t) to target(t+1) samples.
+- Run a broad dynamic model batch comparing sparse linear, tree, MLP, stability, rank-fusion, and preprocessing variants.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
 

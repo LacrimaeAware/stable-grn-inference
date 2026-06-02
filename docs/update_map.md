@@ -48,6 +48,8 @@ experiments/02_dream4_size10_stability/stability_audit.md
 experiments/03_dream4_size10_data_regimes/data_regime_audit.md
 experiments/04_dream4_genie3_baseline/genie3_baseline.md
 experiments/06_dream4_size10_topology_evaluation/topology_evaluation.md
+experiments/07_dream4_size10_lagged_timeseries/lagged_timeseries_audit.md
+experiments/08_dream4_size10_dynamic_model_batch/dynamic_model_batch_audit.md
 private_docs/dev_journal/2026-06-01.md
 results/tables/                    # ignored generated outputs
 ```

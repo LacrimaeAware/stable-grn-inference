@@ -25,7 +25,11 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Current GENIE3 result: GENIE3 improves mean AUPR over one-shot correlation in all four Size10 regimes and beats stability correlation by mean AUPR in knockouts, multifactorial, and same-time time-series scoring. Stability correlation remains competitive, especially on knockdowns and AUROC.
 - Added the first topology-aware evaluation layer for hub recovery, degree-pattern recovery, reciprocal-direction errors, and simple motif counts.
 - Current topology result: edge-ranking gains do not consistently translate into topology recovery. Correlation is still strong for out-degree hubs, stability correlation is mixed for topology, and GENIE3's topology gains are partial.
-- Next: prioritize proper lagged time-series inference or a dynGENIE3-style baseline before Size100 scaling; keep stability-GENIE3 as a smaller ablation.
+- Added a first lagged time-series audit that splits trajectories by `Time` resets and builds within-trajectory source(t) -> target(t+1) samples.
+- Current lagged result: lagged methods substantially improve edge AUROC/AUPR over same-time references. `lagged_genie3_random_forest` is the strongest first temporal baseline by mean AUPR/AUROC, while topology and reciprocal-direction recovery remain mixed.
+- Added a broad dynamic model batch comparing target types, self-predictor modes, tree models, sparse linear models, MLP permutation importance, stability, rank fusion, and light preprocessing.
+- Current dynamic batch result: sparse linear level-target models with `include_self_predictor_no_self_edge` win mean AUPR/AUROC. Rank fusion, simple MLP, and moving-average preprocessing do not beat the best single dynamic model.
+- Next: focus validation on the dynamic sparse-linear include-self result and compare it against a refined dynGENIE3-style baseline before Size100 scaling.
 
 ## Phase 3: Sparsity Calibration and Topology-Aware Evaluation
 

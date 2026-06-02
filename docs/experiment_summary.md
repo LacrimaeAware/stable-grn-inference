@@ -11,9 +11,9 @@ Data regimes tested so far:
 - `multifactorial`
 - `knockouts`
 - `knockdowns`
-- `timeseries`, treated only as same-time observations with `Time` dropped
+- `timeseries`, first treated as same-time observations and then tested with adjacent one-step lagged samples
 
-No lagged time-series inference, Size100 scaling, or final stability-aware method has been implemented yet.
+No Size100 scaling or final stability-aware method has been implemented yet. The current lagged time-series audit is a first pass, not a full dynGENIE3 implementation.
 
 ## Experiments
 
@@ -25,6 +25,8 @@ No lagged time-series inference, Size100 scaling, or final stability-aware metho
 | Data-regime audit | `experiments/03_dream4_size10_data_regimes/run_data_regime_audit.py` | Does the stability effect persist across multifactorial, perturbation, and time-series files? |
 | GENIE3 baseline | `experiments/04_dream4_genie3_baseline/run_genie3_baseline.py` | How does a faithful GENIE3-style tree ensemble compare to correlation and stability correlation? |
 | Topology evaluation | `experiments/06_dream4_size10_topology_evaluation/run_topology_evaluation.py` | Do top-ranked edges recover hubs, degree patterns, reciprocal structure, and motifs? |
+| Lagged time-series audit | `experiments/07_dream4_size10_lagged_timeseries/run_lagged_timeseries_audit.py` | Does using temporal order improve directed edge recovery over same-time scoring? |
+| Dynamic model batch | `experiments/08_dream4_size10_dynamic_model_batch/run_dynamic_model_batch_audit.py` | Which evidence types help most: dynamic targets, trees, sparse linear models, MLPs, stability, fusion, or preprocessing? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -160,6 +162,63 @@ Interpretation:
 - Correlation has a direction-symmetry issue: at top N true edges, one-shot correlation has a mean reciprocal false-positive pair rate of 0.954. Other methods also produce many reciprocal false-positive pairs, so directionality remains a broad weakness of same-time scoring.
 - Topology metrics make the hidden-structure problem sharper: edge-level AUPR/AUROC gains alone are not enough.
 
+## 6. Lagged Time-Series Audit
+
+This experiment split each Size10 time-series file into trajectories when `Time` reset to 0.0, then built one-step lagged samples within each trajectory only. Each network had 5 trajectories, 105 time-series rows, and 100 lagged samples. The design scores source gene expression at time `t` against target gene expression at time `t+1`.
+
+Mean results across the five Size10 networks:
+
+| Method | Variant | Mean AUROC | Mean AUPR | Mean P@5 | Mean P@10 | Mean P@20 |
+|---|---|---:|---:|---:|---:|---:|
+| `lagged_genie3_random_forest` | lagged | 0.767932 | 0.531535 | 0.68 | 0.54 | 0.40 |
+| `lagged_genie3_extra_trees` | lagged | 0.767890 | 0.528333 | 0.68 | 0.58 | 0.37 |
+| `lagged_lasso_alpha_0_1` | lagged | 0.755521 | 0.509534 | 0.68 | 0.50 | 0.40 |
+| `lagged_lasso_alpha_0_03` | lagged | 0.729813 | 0.486495 | 0.64 | 0.48 | 0.38 |
+| `lagged_correlation` | lagged | 0.712754 | 0.458295 | 0.64 | 0.48 | 0.35 |
+| `same_time_genie3_random_forest` | same-time | 0.725080 | 0.373040 | 0.44 | 0.40 | 0.34 |
+| `same_time_lasso_alpha_0_1` | same-time | 0.683267 | 0.336698 | 0.40 | 0.38 | 0.29 |
+| `same_time_correlation` | same-time | 0.653955 | 0.302771 | 0.36 | 0.34 | 0.30 |
+
+Key comparisons:
+
+- `lagged_correlation` improves mean AUPR by 0.155524 and mean AUROC by 0.058798 versus `same_time_correlation`.
+- `lagged_lasso_alpha_0_1` improves mean AUPR by 0.172837 and mean AUROC by 0.072254 versus `same_time_lasso_alpha_0_1`.
+- `lagged_genie3_random_forest` improves mean AUPR by 0.158495 and mean AUROC by 0.042853 versus the best same-time GENIE3-style reference.
+- `lagged_genie3_random_forest` is the strongest first temporal baseline by both mean AUPR and mean AUROC.
+- Topology remains mixed: lagged LASSO variants have the strongest top-3 hub overlaps, while lagged GENIE3 wins edge metrics.
+- Reciprocal-direction false positives remain a problem. Lagged GENIE3 random forest slightly reduces reciprocal false-positive pair rate versus same-time GENIE3, but lagged correlation and lagged LASSO increase the rate versus their same-time references.
+
+## 7. Dynamic Model Batch
+
+This broad batch compared target types, self-predictor modes, tree ensembles, sparse linear models, a small MLP permutation-importance baseline, trajectory-bootstrap stability, equal-weight rank fusion, and light preprocessing. It did not implement reinforcement learning or GFlowNet graph search because those require a separate graph-search formulation.
+
+Best mean edge metrics across the five Size10 networks:
+
+| Metric | Winning Method | Family | Value |
+|---|---|---|---:|
+| AUPR | `dynamic_lasso_a0_03_level_include_self_raw` | sparse linear | 0.652712 |
+| AUROC | `dynamic_lasso_a0_03_level_include_self_raw` | sparse linear | 0.821067 |
+| precision@5 | `dynamic_lasso_a0_03_derivative_include_self_raw` | sparse linear | 0.920000 |
+| precision@10 | `dynamic_lasso_a0_1_level_include_self_raw` | sparse linear | 0.720000 |
+| precision@20 | `dynamic_elastic_net_a0_03_l1_0_7_level_include_self_raw` | sparse linear | 0.490000 |
+
+Best topology/hub metrics:
+
+| Metric | Winning Method | Value |
+|---|---|---:|
+| top-3 out-hub overlap | `dynamic_elastic_net_a0_03_l1_0_7_level_include_self_raw` | 0.533333 |
+| top-3 in-hub overlap | `dynamic_lasso_a0_3_delta_exclude_self_raw` | 0.733333 |
+
+Interpretation:
+
+- Sparse linear dynamic models are the strongest family in this batch, overtaking the earlier lagged GENIE3 random forest on edge metrics.
+- The best AUPR/AUROC result uses level targets and includes the self predictor during fitting while still excluding self-edges from the output.
+- Delta and derivative targets do not beat level targets by mean AUPR/AUROC, but they can be useful for top-k precision and hub recovery.
+- Include-self fitting helps non-self edge recovery in this audit, likely because persistence is informative. This needs careful follow-up because it changes the regression design substantially.
+- MLP permutation importance underperforms the best sparse and tree models; it is only a sanity baseline so far.
+- The fixed stability variants and equal-weight rank-fusion variants do not beat the best single dynamic model.
+- Moving-average smoothing hurts the RF level/exclude-self baseline. Wavelet denoising was skipped because PyWavelets is not installed.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -170,13 +229,16 @@ The current evidence supports a cautious story:
 - Sparse LASSO is not yet the dominant base estimator. Tuning helped, and knockouts are promising, but LASSO stability is mixed.
 - GENIE3 is now the strongest non-sparse baseline family by AUPR in several regimes. Any future stability-aware method should compare against GENIE3, not only correlation and LASSO.
 - GENIE3 is not a complete topology answer on Size10. It helps edge AUPR, but hub and degree recovery remain mixed.
-- Same-time treatment of time-series data is only an audit shortcut. It does not answer whether lagged directed inference works.
+- Same-time treatment of time-series data is only an audit shortcut. The first lagged audit shows that temporal order substantially improves edge recovery.
+- Lagged models are now the strongest Size10 time-series baselines by edge metrics, but reciprocal-direction and topology recovery issues remain.
+- The dynamic batch suggests sparse linear models with self-persistence included during fitting may be the most promising Size10 temporal baseline so far.
+- Neural MLP and simple rank fusion are not yet helping in this small-data setting.
 
 ## Current Recommendation
 
-The next main branch should be proper lagged time-series inference or a dynGENIE3-style baseline. The topology audit shows that same-time edge rankings can score well while still struggling with directionality and graph structure, which is central to the hidden-structure question.
+The next main branch should be a focused validation of the dynamic sparse-linear include-self result. Before scaling, test whether this result is stable across networks, target definitions, trajectory resampling, and topology metrics, and compare it against a refined dynGENIE3-style tree baseline.
 
-Stability-GENIE3 remains a useful smaller branch or ablation, but it should not replace the dynamic-inference step. Size100 multifactorial scaling should wait until the method comparison includes topology-aware evaluation and a stronger directional baseline.
+Stability over dynamic sparse and tree models remains a useful follow-up ablation. Size100 scaling should wait until the temporal baseline and topology evaluation story are clearer.
 
 ## Caveats
 
@@ -185,4 +247,4 @@ Stability-GENIE3 remains a useful smaller branch or ablation, but it should not 
 - Bootstrap resampling with very small sample counts is fragile and should be treated as an audit, not as a validated estimator.
 - Metrics can disagree: AUPR, AUROC, and precision@k each reward different ranking behavior.
 - Topology metrics can also disagree: hub overlap, degree Spearman, reciprocal counts, and motif counts each capture different structure.
-- The current time-series handling ignores temporal direction and should not be interpreted causally.
+- The lagged audit uses temporal order, but it is still not causal validation.
