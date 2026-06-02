@@ -5,3 +5,9 @@ scikit-learn
 matplotlib
 networkx
 jupyter
+# Signal-transform extras (wavelet denoising + wavelet scattering).
+# kymatio 0.3.0 imports the removed scipy.special.sph_harm at load time; call
+# stable_grn_inference._compat.ensure_scipy_sph_harm() before importing
+# kymatio.numpy on SciPy >= 1.15.
+pywavelets>=1.8
+kymatio>=0.3.0

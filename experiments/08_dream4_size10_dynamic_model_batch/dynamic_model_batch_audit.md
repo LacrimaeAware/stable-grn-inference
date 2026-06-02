@@ -21,7 +21,7 @@ derivative_Y = delta_Y / delta_time
 - a small target-wise MLP sanity baseline with permutation importance
 - trajectory-bootstrap stability for one tree and one sparse candidate
 - equal-weight rank fusion by normalized score, reciprocal rank, and Borda score
-- light signal preprocessing with moving-average smoothing and optional wavelet denoising if PyWavelets is installed
+- light signal preprocessing with moving-average smoothing and wavelet denoising (PyWavelets is now a declared dependency in `requirements.txt`, so this variant runs)
 - topology-aware hidden-structure metrics
 
 ## Self-Predictor Modes
@@ -67,7 +67,7 @@ Main takeaways:
 - The MLP permutation-importance baseline underperforms the best sparse and tree baselines.
 - The fixed stability variants do not improve over their corresponding one-shot dynamic baselines in this run.
 - Equal-weight rank fusion does not beat the best single model.
-- Moving-average smoothing hurts the RF level/exclude-self baseline. Wavelet denoising was skipped because PyWavelets is not installed.
+- Moving-average smoothing and wavelet denoising both slightly hurt the RF level/exclude-self baseline by mean AUPR (raw 0.537, moving-average-3 0.487, wavelet-denoise 0.519). Wavelet denoising (db1, soft threshold) hurts less than moving-average smoothing, but neither beats the raw baseline on this Size10 setting.
 
 ## Run
 

@@ -613,7 +613,9 @@ def maybe_wavelet_denoise_trajectories(
         result = trajectory.copy()
         gene_columns = [column for column in trajectory.columns if column != "Time"]
         for column in gene_columns:
-            values = trajectory[column].to_numpy(dtype=float)
+            # copy=True: PyWavelets' Cython transform needs a writable buffer,
+            # and a bare to_numpy() can return a read-only view.
+            values = trajectory[column].to_numpy(dtype=float, copy=True)
             coeffs = pywt.wavedec(values, wavelet="db1", mode="symmetric", level=1)
             detail = coeffs[-1]
             threshold = 0.5 * float(pd.Series(detail).abs().median())
