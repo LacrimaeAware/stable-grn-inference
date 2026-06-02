@@ -19,10 +19,11 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Validate the strongest dynamic sparse-linear candidate for alpha sensitivity, self-persistence, bootstrap behavior, reciprocal errors, and topology metrics.
 - Scale the dynamic sparse candidate to DREAM4 Size100 time-series data as a first scaling check.
 - Compare dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion across Size10 and Size100, and scaffold a GeneNetWeaver simulation-sweep design.
+- Run a mechanism audit that explains the findings: alpha as a density knob, include-self as a persistence control, fusion via complementary errors, edge-vs-topology disagreement, and level-vs-delta target quality.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
 
-The Size100 scaling check is a cautionary result: the Size10 candidate `dynamic_lasso_level_include_self_a0_03` does not reproduce its advantage on Size100, so it is kept as a Size10 finding rather than promoted to a main method. The follow-up calibration/fusion audit shows the picture is regime-dependent: the best sparsity level tracks network density, dynGENIE3-style delta/derivative tree targets do not help, and rank fusion of complementary evidence is the strongest Size100 AUPR method. No official dynGENIE3 package is installed, so the delta/derivative tree methods are dynGENIE3-style. See `docs/experiment_summary.md` for details.
+The Size100 scaling check is a cautionary result: the Size10 candidate `dynamic_lasso_level_include_self_a0_03` does not reproduce its advantage on Size100, so it is kept as a Size10 finding rather than promoted to a main method. The follow-up calibration/fusion audit shows the picture is regime-dependent: the best sparsity level tracks network density, dynGENIE3-style delta/derivative tree targets do not help, and rank fusion of complementary evidence is the strongest Size100 AUPR method. The mechanism audit then explains these results (with deployable CV/BIC alpha selection, a self-permutation control, and an AUPR-vs-topology analysis) and draws general statistical lessons. No official dynGENIE3 package is installed, so the delta/derivative tree methods are dynGENIE3-style. See `docs/experiment_summary.md` for details.
 
 ## Track A Scope
 

@@ -13,7 +13,7 @@ Data regimes tested so far:
 - `knockdowns`
 - `timeseries`, first treated as same-time observations and then tested with adjacent one-step lagged samples
 
-DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10) and for a combined dynGENIE3-style baseline, sparsity-calibration, and rank-fusion audit across both sizes (experiment 11). A GeneNetWeaver simulation-sweep design (experiment 12) is scaffolded but not executed. No official dynGENIE3 package is installed, so tree delta/derivative methods are dynGENIE3-style, not an official reproduction; no final stability-aware method has been implemented yet.
+DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10), a combined dynGENIE3-style baseline / sparsity-calibration / rank-fusion audit across both sizes (experiment 11), and a mechanism/hypothesis audit that explains those findings (experiment 13). A GeneNetWeaver simulation-sweep design (experiment 12) is scaffolded but not executed. No official dynGENIE3 package is installed, so tree delta/derivative methods are dynGENIE3-style, not an official reproduction; no final stability-aware method has been implemented yet.
 
 ## Experiments
 
@@ -31,6 +31,7 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | Size100 dynamic sparse scaling | `experiments/10_dream4_size100_dynamic_sparse_scaling/run_size100_dynamic_sparse_scaling.py` | Does the Size10 dynamic sparse candidate survive on DREAM4 Size100 time-series data? |
 | Dynamic baseline + calibration + fusion | `experiments/11_dream4_dynamic_baseline_and_calibration/run_dynamic_baseline_and_calibration.py` | How do dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion compare across Size10 and Size100? |
 | GNW sweep design | `experiments/12_gnw_sweep_design/gnw_sweep_design.md` | How would we test whether these findings generalize under controlled GeneNetWeaver simulation? (design scaffold) |
+| Mechanism audit | `experiments/13_dream4_mechanism_audit/run_mechanism_audit.py` | Why do the current winners work or fail (alpha/density, persistence, fusion complementarity, edge-vs-topology, target choice)? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -302,6 +303,18 @@ Findings:
 - Rank fusion helps in the hard regime: at Size100 `fusion_borda` is the best AUPR method overall (0.208 vs best single input 0.173, with precision@10 0.84), while at Size10 the single best sparse method still wins. The reciprocal-direction penalty gives a small Size100 gain over base fusion and slightly lowers the reciprocal false-positive rate.
 - By AUROC, trees (`lagged_genie3_rf_level`, 0.754) remain the Size100 leader, so a literature-faithful dynGENIE3 comparison is the right next reference.
 
+## 11. Mechanism Audit
+
+This audit explained the experiment 9-11 winners rather than adding models. It tested five hypotheses across Size10 and Size100 and reused the pipeline; alpha was tuned on gold labels only as an oracle diagnostic.
+
+- **H1 (alpha tracks density) - supported.** Predicted edge density falls monotonically with alpha, and the oracle best-AUPR alpha rises from 0.03 (Size10, true density ~0.16) to 0.1 (Size100, true density ~0.02). It is directional, not exact density-matching (best-alpha predicted density still overshoots truth). Deployable proxies land within one alpha grid step: CV is best at Size10, BIC at Size100; bracketing CV and BIC covers the oracle.
+- **H2 (include-self controls persistence) - supported, with a twist.** Self-only persistence explains ~59% of next-step level at both sizes. Permuting the self predictor removes the include-self advantage (so persistence does real control work), but a clean residualized model reproduces only the small Size100 gain (+0.019 of +0.030), not the large Size10 gain (+0.016 of +0.166) - so part of the benefit comes from joint estimation, not simple self-variance removal. Self-dominance grows with scale (ratio 8.9 -> 117).
+- **H3 (fusion via complementary errors) - supported.** Base-method rank correlation is lower at Size100 (0.37) than Size10 (0.43), and fusion true positives carry more multi-method support than false positives (2.25 vs 1.59 at Size100). Fusion promotes multi-method-agreed edges rather than averaging noise.
+- **H4 (edge vs topology) - supported.** Spearman(AUPR, top-hub overlap) is weak (0.28 Size10, 0.11 Size100); topology recovery is a partly separate objective from AUPR.
+- **H5 (level beats delta/derivative) - supported.** Tree level AUPR strongly beats delta at both sizes; var(delta)/var(level) ~= 0.38 (differencing strips ~62% of the shared predictable variance), and delta ~= derivative (rank corr ~0.98-1.0) on the constant DREAM4 time grid.
+
+General lessons (cautious, tied to results): regularization should reflect sparsity/sample size; autoregressive terms are useful controls but can dominate; fusion helps only with complementary errors; predictive ranking and structural recovery are different goals; target formulation changes signal-to-noise; validation must include regime shifts.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -320,17 +333,18 @@ The current evidence supports a cautious story:
 - Neural MLP does not help in this small-data setting. Simple rank fusion does not help at Size10, but it does help in the harder Size100 regime (see below).
 - The Size100 scaling audit weakens the Size10 headline. The specific `dynamic_lasso_level_include_self_a0_03` candidate does not scale: at Size100 it only ties lagged correlation on AUPR, trails it on AUROC, wins 0 of 5 networks, and loses its reciprocal-direction advantage entirely. Higher regularization (`a0_1`) is the best sparse setting at Size100, and lagged GENIE3 wins AUROC on every Size100 network. The include-self sparse family remains worth studying, but the small-network result should not be promoted as a main method.
 - The calibration/fusion audit reframes the alpha question and revives fusion. The best alpha is not magic; it tracks network density (0.03 at Size10, 0.1 at Size100, pushing predicted density toward true density). dynGENIE3-style delta/derivative tree targets hurt versus level GENIE3. Rank fusion of complementary sparse + tree + correlation evidence is the best Size100 AUPR method (`fusion_borda` 0.208, precision@10 0.84), and a fixed reciprocal-direction penalty slightly improves Size100 AUPR and reciprocal false positives. No single method wins both AUPR and AUROC, and self-persistence remains a dominant but interpretation-dangerous term.
+- The mechanism audit makes those reframings causal/explanatory. Alpha is a density knob (best alpha rises as truth sparsens) and deployable CV/BIC proxies pick within one grid step. Include-self helps by controlling persistence (a self-permutation control removes the benefit), but residualizing self does not reproduce the Size10 gain, so joint estimation matters. Fusion wins precisely where base methods are least correlated and true positives draw multi-method support. Edge AUPR and topology recovery are only weakly correlated, and level beats delta/derivative because differencing removes the shared predictable variance (var(delta)/var(level) ~ 0.38; delta ~ derivative on the uniform grid). These read as general statistical lessons, with the specific numbers being DREAM4-specific.
 
 ## Current Recommendation
 
 The defensible current position is that dynamic GRN inference on DREAM4 is regime-dependent rather than owned by one method. Concretely:
 
 - Keep `dynamic_lasso_level_include_self_a0_03` as a Size10 finding only; it does not scale to Size100.
-- Treat alpha as a calibrated, density-tracking knob, not a fixed value. Use stronger regularization on larger, sparser networks (best alpha 0.03 at Size10, 0.1 at Size100).
-- At Size100, prefer rank fusion of complementary sparse + tree + correlation evidence (best AUPR, best precision@k) and keep level GENIE3 as the AUROC reference; do not use dynGENIE3-style delta/derivative tree targets, which hurt.
-- Treat self-persistence as a model-stability term, not directed-edge evidence.
+- Treat alpha as a calibrated, density-tracking knob, not a fixed value. Use stronger regularization on larger, sparser networks (best alpha 0.03 at Size10, 0.1 at Size100), and select it with a deployable proxy (cross-validation at small scale, BIC/density-prior at larger scale) rather than gold-standard tuning.
+- At Size100, prefer rank fusion of complementary sparse + tree + correlation evidence (best AUPR, best precision@k) and keep level GENIE3 as the AUROC reference; do not use dynGENIE3-style delta/derivative tree targets, which hurt because differencing strips the shared predictable signal.
+- Treat self-persistence as a model-stability control, not directed-edge evidence: it explains ~59% of next-step level and its coefficient dominates (ratio up to ~117), and a self-permutation control confirms it carries the include-self benefit.
 
-The next concrete steps are: (1) add a literature-faithful (official) dynGENIE3 baseline so the dynamic comparison is fair, since no official package is currently installed; (2) execute the GeneNetWeaver simulation sweeps designed in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` to test whether the density/alpha and fusion findings generalize; and (3) only then consider perturbation/knockout dynamic models.
+The next concrete steps are: (1) add a literature-faithful (official) dynGENIE3 baseline so the dynamic comparison is fair, since no official package is currently installed; (2) execute the GeneNetWeaver simulation sweeps designed in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` to test whether the density/alpha, residualization, and fusion-complementarity findings generalize; and (3) only then consider perturbation/knockout dynamic models.
 
 ## Caveats
 

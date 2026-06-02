@@ -133,6 +133,45 @@ def build_dynamic_target(
     raise ValueError("target_type must be 'level', 'delta', or 'derivative'")
 
 
+def residualize_target_on_self(
+    x_t: pd.DataFrame,
+    target: pd.DataFrame,
+) -> pd.DataFrame:
+    """Remove each gene's autoregressive self-persistence from its target.
+
+    For every gene ``j``, this regresses the target column ``target[j]`` on the
+    same gene's predictor column ``x_t[j]`` with an intercept (ordinary least
+    squares, closed form) and returns the residual. The residual target keeps
+    only the variation in ``G_j(t+1)`` (or its delta) that is not explained by
+    ``G_j(t)`` alone, so a downstream exclude-self model fit on these residuals
+    scores non-self regulators after self-persistence has been controlled for.
+
+    Constant predictor columns contribute no slope, so the residual is simply
+    the mean-centered target for those genes.
+    """
+    if list(x_t.columns) != list(target.columns):
+        raise ValueError("x_t and target must have matching gene columns")
+    if len(x_t) != len(target):
+        raise ValueError("x_t and target must have matching rows")
+
+    x = x_t.apply(pd.to_numeric)
+    y = target.apply(pd.to_numeric)
+    residuals = {}
+    for gene in x.columns:
+        predictor = x[gene].to_numpy(dtype=float)
+        response = y[gene].to_numpy(dtype=float)
+        predictor_centered = predictor - predictor.mean()
+        response_centered = response - response.mean()
+        denominator = float(np.dot(predictor_centered, predictor_centered))
+        if denominator == 0.0:
+            residuals[gene] = response - response.mean()
+            continue
+        slope = float(np.dot(predictor_centered, response_centered)) / denominator
+        intercept = response.mean() - slope * predictor.mean()
+        residuals[gene] = response - (intercept + slope * predictor)
+    return pd.DataFrame(residuals, index=target.index)
+
+
 def trajectory_bootstrap_indices(
     metadata: pd.DataFrame,
     n_resamples: int,

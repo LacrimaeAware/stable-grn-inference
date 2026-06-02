@@ -14,6 +14,7 @@ from .timeseries import (
     build_dynamic_target,
     build_lagged_samples,
     moving_average_smooth_trajectories,
+    residualize_target_on_self,
     split_trajectories_by_time_reset,
     trajectory_bootstrap_indices,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "load_expression_matrix",
     "load_gold_standard_edges",
     "moving_average_smooth_trajectories",
+    "residualize_target_on_self",
     "split_trajectories_by_time_reset",
     "trajectory_bootstrap_indices",
 ]

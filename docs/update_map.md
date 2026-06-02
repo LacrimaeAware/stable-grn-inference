@@ -54,6 +54,8 @@ experiments/09_dream4_size10_dynamic_sparse_validation/dynamic_sparse_validation
 experiments/10_dream4_size100_dynamic_sparse_scaling/size100_dynamic_sparse_scaling.md
 experiments/11_dream4_dynamic_baseline_and_calibration/dynamic_baseline_and_calibration.md
 experiments/12_gnw_sweep_design/gnw_sweep_design.md
+experiments/13_dream4_mechanism_audit/mechanism_audit.md
+results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
 private_docs/dev_journal/2026-06-02.md
 results/tables/                    # ignored generated outputs
