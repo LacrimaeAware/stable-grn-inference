@@ -47,6 +47,16 @@ results/tables/dream4_size10_stability_edges.csv
 results/tables/dream4_size10_network1_stability_debug_report.md
 ```
 
+## Current Takeaways
+
+With the default 100 bootstrap resamples on Size10 multifactorial data:
+
+- `stability_correlation` has the best mean AUPR among the audited methods.
+- `one_shot_correlation` still has the best mean AUROC.
+- `stability_lasso_alpha_0_1` improves over one-shot `lasso_alpha_0_1` on mean AUROC/AUPR, but does not beat correlation.
+- Random forest remains useful as a non-sparse audit comparator, but it is not the main path for stability-aware sparse inference.
+- The result supports continuing stability-selection experiments, but the evidence is still small-data and should be tested on richer inputs such as time-series, knockouts/knockdowns, and eventually Size100.
+
 ## Limitations
 
 This is a fragile small-data audit. Each Size10 multifactorial matrix has only 10 rows, so bootstrap stability can reveal ranking behavior but should not be treated as a final thesis result. The goal is to decide whether stability-aware sparse ranking is worth pursuing on richer data or with better experimental design.

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+SIZE10_DATA_REGIMES = ("multifactorial", "knockouts", "knockdowns", "timeseries")
+
 
 def _normalize_gene_id(value: object) -> str:
     """Return a DREAM-style gene identifier such as ``G1``."""
@@ -79,3 +81,51 @@ def load_gold_standard_edges(path: str | Path) -> pd.DataFrame:
     normalized["target"] = normalized["target"].map(_normalize_gene_id)
     normalized["is_true"] = normalized["is_true"].astype(int)
     return normalized
+
+
+def dream4_size10_expression_path(
+    root: str | Path,
+    network_id: int,
+    data_regime: str,
+) -> Path:
+    """Return the local DREAM4 Size10 expression path for one data regime.
+
+    Parameters
+    ----------
+    root:
+        DREAM4 raw-data root, usually ``data/raw/dream4``.
+    network_id:
+        DREAM4 Size10 network number, from 1 through 5.
+    data_regime:
+        One of ``multifactorial``, ``knockouts``, ``knockdowns``, or
+        ``timeseries``.
+    """
+    _validate_size10_network_id(network_id)
+    if data_regime not in SIZE10_DATA_REGIMES:
+        choices = ", ".join(SIZE10_DATA_REGIMES)
+        raise ValueError(f"data_regime must be one of: {choices}")
+
+    return (
+        Path(root)
+        / "DREAM4_InSilico_Size10"
+        / f"insilico_size10_{network_id}"
+        / f"insilico_size10_{network_id}_{data_regime}.tsv"
+    )
+
+
+def dream4_size10_gold_standard_path(root: str | Path, network_id: int) -> Path:
+    """Return the local DREAM4 Size10 gold-standard edge path."""
+    _validate_size10_network_id(network_id)
+    return (
+        Path(root)
+        / "DREAM4_InSilicoNetworks_GoldStandard"
+        / "DREAM4_Challenge2_GoldStandards"
+        / "Size 10"
+        / f"DREAM4_GoldStandard_InSilico_Size10_{network_id}.tsv"
+    )
+
+
+def _validate_size10_network_id(network_id: int) -> None:
+    """Validate a DREAM4 Size10 network id."""
+    if network_id not in range(1, 6):
+        raise ValueError("network_id must be between 1 and 5")

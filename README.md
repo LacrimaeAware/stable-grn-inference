@@ -2,18 +2,20 @@
 
 Stability-aware sparse inference for recovering gene regulatory networks from noisy time-series and perturbation data.
 
-This repository is a minimal starting scaffold for a research-engineering project on stability-aware sparse gene regulatory network inference. The first objective is to build a clean DREAM4/GeneNetWeaver-style baseline pipeline before adding more ambitious stability, calibration, or simulation experiments.
+This repository is a minimal starting scaffold for a research-engineering project on stability-aware sparse gene regulatory network inference. The current work is focused on DREAM4 Size10 baselines and small stability audits before moving to richer data or larger networks.
 
 ## Current Milestone
 
-The first milestone is a reproducible baseline pipeline for a real DREAM4-style dataset:
+The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit pipeline:
 
-- Locate and download DREAM4 data manually.
-- Inspect the expression matrix format.
-- Inspect the gold-standard edge format.
-- Implement one naive sparse edge-ranking baseline.
+- Inspect DREAM4 expression and gold-standard file formats.
+- Run one-shot edge-ranking baselines across Size10 multifactorial networks.
+- Compare correlation, sparse regression, Elastic Net, and random-forest audit baselines.
+- Run bootstrap/subsampling stability audits on Size10 multifactorial data.
+- Compare Size10 data regimes and a GENIE3-style tree ensemble baseline.
+- Add topology-aware evaluation for hubs, degree patterns, reciprocal edges, and simple motifs.
 - Compute AUROC, AUPR, and precision@k.
-- Produce one result plot.
+- Use the audit results to decide what should move to richer data.
 
 ## Track A Scope
 
@@ -27,13 +29,20 @@ Track B, graph-wavelet extensions, and finance applications are not part of the 
 stable-grn-inference/
 +-- docs/
 |   +-- project_plan.md
+|   +-- data_inventory.md
+|   +-- experiment_summary.md
+|   +-- update_map.md
 +-- src/
 |   +-- stable_grn_inference/
 |       +-- data/
 |       +-- evaluation/
 |       +-- inference/
 |       +-- stability/
++-- experiments/
++-- results/             # ignored; generated tables/reports
 +-- private_docs/        # ignored; private planning notes
 +-- requirements.txt
 +-- README.md
 ```
+
+For a consolidated record of completed DREAM4 experiments and current conclusions, see `docs/experiment_summary.md`.
