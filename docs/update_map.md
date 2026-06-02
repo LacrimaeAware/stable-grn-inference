@@ -60,6 +60,7 @@ experiments/15_modern_grn_benchmark_adapter/modern_grn_benchmark_adapter.md
 experiments/16_beeline_adapter_smoke/beeline_adapter_smoke.md
 experiments/17_dream4_stability_orientation_diagnostics/stability_orientation_diagnostics.md
 experiments/18_beeline_diagnostics/beeline_diagnostics.md
+experiments/19_interventional_grn_benchmark_scouting/interventional_benchmark_scouting.md
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
 private_docs/dev_journal/2026-06-02.md

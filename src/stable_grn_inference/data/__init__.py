@@ -9,6 +9,15 @@ from .beeline import (
     read_beeline_expression,
     read_beeline_reference_edges,
 )
+from .interventional import (
+    InterventionalDataset,
+    build_candidate_edges_from_perturbations,
+    detect_causalbench,
+    interventional_effect_matrix,
+    interventional_orientation_asymmetry,
+    load_interventional_frames,
+    make_synthetic_interventional,
+)
 from .dream4 import (
     SIZE10_DATA_REGIMES,
     SIZE100_DATA_REGIMES,
@@ -30,6 +39,13 @@ from .timeseries import (
 
 __all__ = [
     "GrnBenchmarkDataset",
+    "InterventionalDataset",
+    "build_candidate_edges_from_perturbations",
+    "detect_causalbench",
+    "interventional_effect_matrix",
+    "interventional_orientation_asymmetry",
+    "load_interventional_frames",
+    "make_synthetic_interventional",
     "build_tf_to_gene_candidate_edges",
     "infer_expression_orientation",
     "label_candidate_edges",
