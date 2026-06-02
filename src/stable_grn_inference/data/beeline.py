@@ -37,6 +37,11 @@ import pandas as pd
 
 EXPRESSION_FILE = "ExpressionData.csv"
 REFERENCE_FILE = "refNetwork.csv"
+# BEELINE uses different reference filenames across releases (refNetwork.csv for the
+# scRNA-seq inputs, GroundTruthNetwork.csv for the Curated/Synthetic benchmarks). For
+# Curated models the ground truth is shared one level up, so the loader also searches
+# the parent directory.
+REFERENCE_FILE_CANDIDATES = ("refNetwork.csv", "GroundTruthNetwork.csv")
 PSEUDOTIME_FILE = "PseudoTime.csv"
 TF_FILE_CANDIDATES = ("TFs.csv", "TF.csv", "tf_list.csv", "tfs.txt", "TFs.txt")
 
@@ -223,6 +228,21 @@ def label_candidate_edges(
 # --------------------------------------------------------------------------- #
 # Optional files
 # --------------------------------------------------------------------------- #
+def _find_reference_path(base: Path) -> Path | None:
+    """Locate the reference network for a dataset directory.
+
+    Searches the dataset directory and then its parent (BEELINE Curated models keep
+    a shared ``GroundTruthNetwork.csv`` one level above the per-replicate folders),
+    trying each known reference filename in order.
+    """
+    for directory in (base, base.parent):
+        for candidate in REFERENCE_FILE_CANDIDATES:
+            path = directory / candidate
+            if path.exists():
+                return path
+    return None
+
+
 def _read_pseudotime(path: Path) -> pd.DataFrame | None:
     if not path.exists():
         return None
@@ -300,10 +320,10 @@ def load_beeline_dataset(
             f"Place a BEELINE dataset under {base}."
         )
 
-    reference_path = base / REFERENCE_FILE
+    reference_path = _find_reference_path(base)
     raw_reference = (
         read_beeline_reference_edges(reference_path)
-        if reference_path.exists()
+        if reference_path is not None
         else pd.DataFrame(columns=["source", "target"])
     )
 

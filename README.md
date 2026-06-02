@@ -22,6 +22,7 @@ The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit
 - Run a mechanism audit that explains the findings: alpha as a density knob, include-self as a persistence control, fusion via complementary errors, edge-vs-topology disagreement, and level-vs-delta target quality.
 - Build a deployable, gold-free calibrated-confidence pipeline: select alpha without gold labels (CV/BIC), rank edges by equal-weight method-agreement confidence, check calibration, and keep topology objectives in a separate decision layer.
 - Begin a modern single-cell direction: scout modern GRN benchmarks (choose BEELINE) and add a BEELINE adapter (`data/beeline.py`) so the pipeline ingests single-cell datasets (TF→gene candidates, proxy references, EPR), smoke-tested on a synthetic fixture.
+- Run a rigorous diagnostics experiment (with paired-over-networks confidence intervals) that decomposes the error and tests the original stability thesis directly, rather than chasing leaderboards.
 - Compute AUROC, AUPR, and precision@k.
 - Use the audit results to decide what should move to richer data.
 
@@ -30,6 +31,8 @@ The Size100 scaling check is a cautionary result: the Size10 candidate `dynamic_
 ## Track A Scope
 
 Track A asks whether sparse directed network inference can be made more reliable by ranking edges with explicit stability information, such as bootstrap or subsampling selection frequencies. The initial repo scope is only the baseline pipeline: data loading, one simple inference method, basic edge-recovery metrics, and plots.
+
+Status update: experiment 17 tested this stability thesis directly with formal stability selection (Meinshausen–Bühlmann false-positive bound, trajectory-respecting subsampling) and found it **not supported in its strong form** on DREAM4 — the bound is too loose at p≫n and selection-probability ranking underperforms a single theory/CV-tuned fit. The diagnostics also show the dominant error is **skeleton detection, not edge orientation**, and that the LASSO penalty is predictable from sample-complexity theory (square-root LASSO ≈ grid oracle at Size100). The working thesis is now: skeleton/sample-complexity-limited inference with a theory-predictable penalty and complementary-evidence fusion. See `docs/experiment_summary.md`.
 
 Track B, graph-wavelet extensions, and finance applications are not part of the initial repository scope. They may become separate pilots or later extensions after the Track A baseline is working.
 
