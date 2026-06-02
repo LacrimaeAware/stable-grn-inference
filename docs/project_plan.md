@@ -37,7 +37,9 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Current calibration/fusion result: dynamic GRN inference on DREAM4 is regime-dependent. The best alpha tracks network density (0.03 at Size10, 0.1 at Size100), stronger regularization is better at Size100, and include-self still helps after calibration. dynGENIE3-style delta/derivative tree targets hurt versus level GENIE3. Rank fusion of complementary sparse + tree + correlation evidence is the best Size100 AUPR method (`fusion_borda` 0.208, precision@10 0.84) and a fixed reciprocal-direction penalty slightly improves Size100 AUPR and reciprocal false positives; trees still lead Size100 AUROC. No official dynGENIE3 is installed, so tree delta/derivative methods are dynGENIE3-style.
 - Added a mechanism/hypothesis audit (experiment 13) that explains the experiment 9-11 winners rather than adding models.
 - Current mechanism result: all five hypotheses are supported, with nuances. Alpha is a density knob (best alpha 0.03 -> 0.1 as true density drops ~0.16 -> ~0.02), and deployable CV/BIC proxies choose within one alpha grid step of the oracle. Include-self helps by controlling persistence (a self-permutation control removes the benefit; self explains ~59% of next-step level), but a residualized model reproduces only the Size100 gain, not the Size10 gain, so joint estimation matters. Fusion wins where base methods are least correlated and true positives carry multi-method support. Edge AUPR and topology recovery are only weakly correlated. Level beats delta/derivative because differencing strips the shared predictable variance (var(delta)/var(level) ~ 0.38; delta ~ derivative on the uniform grid).
-- Next: add a literature-faithful (official) dynGENIE3 baseline, then execute the GeneNetWeaver sweeps designed in experiment 12 to test whether the density/alpha, residualization, and fusion-complementarity findings generalize, before opening perturbation/knockout data branches.
+- Added a deployable, gold-free calibrated-confidence pipeline (experiment 14): gold-free alpha selection, equal-weight agreement confidence, calibration diagnostics, and a topology-aware decision layer.
+- Current calibrated-confidence result: deployable alpha selection retains 96-100% of the oracle sparse model's AUPR (BIC best overall, CV best at Size10, BIC exact at Size100). Equal-weight `fusion_borda` of the deployable sparse + tree + correlation wins Size100 AUPR/precision@10 while single deployable sparse wins Size10. Confidence rankings are meaningfully calibrated (top-confidence bins have ~8-11x the true-edge rate of bottom bins). Topology needs a separate decision layer; a fixed topology penalty zeroes reciprocal false positives (by suppressing reciprocal pairs) and maximizes Size100 precision@10. Reportable as methodology, not yet a single dominant method.
+- Next: add a literature-faithful (official) dynGENIE3 baseline, then execute the GeneNetWeaver sweeps designed in experiment 12 to test whether the density/alpha, residualization, fusion-complementarity, and calibrated-confidence findings generalize; consolidate the regime-dependent pipeline into a methodology report before opening perturbation/knockout data branches.
 
 ## Phase 3: Sparsity Calibration and Topology-Aware Evaluation
 
@@ -45,6 +47,7 @@ For a consolidated record of completed experiments, metrics, and current interpr
 - Added deployable alpha-selection proxies (cross-validation MSE, BIC, a sparsity-prior density heuristic, and bootstrap selection stability) and compared them to the oracle best alpha; CV is best at Size10, BIC at Size100, each within one grid step.
 - Added evaluation beyond edgewise scores, including degree Spearman, hub overlap (top-3/5/10), reciprocal false-positive pairs, reciprocal edge counts, vectorized feed-forward loop counts, and true-hub edge precision/recall, plus an explicit AUPR-vs-topology correlation analysis showing they are partly separate objectives.
 - Added a reciprocal-direction penalty to rank fusion, a self-residualized sparse model, and a self-permutation control to target persistence and reciprocal false positives.
+- Built a deployable, gold-free confidence pipeline (experiment 14): gold-free alpha selectors (CV/BIC/AIC/density-prior/stability), equal-weight agreement confidence, calibration reliability/ECE-style diagnostics, and a topology-aware decision layer with separate winners for edge ranking, top-k precision, hub recovery, and reciprocal-direction control.
 
 ## Phase 4: GeneNetWeaver Simulation Sweeps
 
@@ -54,6 +57,6 @@ For a consolidated record of completed experiments, metrics, and current interpr
 
 ## Optional Later Work
 
-- Test graph-wavelet or signal-denoising preprocessing as an ablation.
-- Explore Track B as a separate pilot on structured representation learning.
+- Signal-denoising preprocessing is now runnable: PyWavelets is installed (`requirements.txt`), and the experiment 08 wavelet-denoise ablation runs as a real variant (slightly hurts the Size10 RF baseline, AUPR 0.519 vs 0.537 raw). Graph-wavelet / wavelet-scattering preprocessing can be explored next.
+- Explore Track B as a separate pilot on structured representation learning. Kymatio is installed for 1D wavelet scattering (use `stable_grn_inference._compat.ensure_scipy_sph_harm()` before importing `kymatio.numpy` on SciPy >= 1.15).
 - Consider finance transfer only after the core hidden-network benchmark is solid.

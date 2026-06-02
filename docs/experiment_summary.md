@@ -13,7 +13,7 @@ Data regimes tested so far:
 - `knockdowns`
 - `timeseries`, first treated as same-time observations and then tested with adjacent one-step lagged samples
 
-DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10), a combined dynGENIE3-style baseline / sparsity-calibration / rank-fusion audit across both sizes (experiment 11), and a mechanism/hypothesis audit that explains those findings (experiment 13). A GeneNetWeaver simulation-sweep design (experiment 12) is scaffolded but not executed. No official dynGENIE3 package is installed, so tree delta/derivative methods are dynGENIE3-style, not an official reproduction; no final stability-aware method has been implemented yet.
+DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10), a combined dynGENIE3-style baseline / sparsity-calibration / rank-fusion audit across both sizes (experiment 11), a mechanism/hypothesis audit that explains those findings (experiment 13), and a deployable, gold-free calibrated-confidence pipeline (experiment 14). A GeneNetWeaver simulation-sweep design (experiment 12) is scaffolded but not executed. No official dynGENIE3 package is installed, so tree delta/derivative methods are dynGENIE3-style, not an official reproduction; no final stability-aware method has been implemented yet.
 
 ## Experiments
 
@@ -32,6 +32,7 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | Dynamic baseline + calibration + fusion | `experiments/11_dream4_dynamic_baseline_and_calibration/run_dynamic_baseline_and_calibration.py` | How do dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion compare across Size10 and Size100? |
 | GNW sweep design | `experiments/12_gnw_sweep_design/gnw_sweep_design.md` | How would we test whether these findings generalize under controlled GeneNetWeaver simulation? (design scaffold) |
 | Mechanism audit | `experiments/13_dream4_mechanism_audit/run_mechanism_audit.py` | Why do the current winners work or fail (alpha/density, persistence, fusion complementarity, edge-vs-topology, target choice)? |
+| Calibrated confidence | `experiments/14_dream4_calibrated_confidence/run_calibrated_confidence.py` | Can the findings become a deployable, gold-free edge-confidence rule (alpha selection + agreement confidence + calibration + topology layer)? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
@@ -222,7 +223,7 @@ Interpretation:
 - Include-self fitting helps non-self edge recovery in this audit, likely because persistence is informative. This needs careful follow-up because it changes the regression design substantially.
 - MLP permutation importance underperforms the best sparse and tree models; it is only a sanity baseline so far.
 - The fixed stability variants and equal-weight rank-fusion variants do not beat the best single dynamic model.
-- Moving-average smoothing hurts the RF level/exclude-self baseline. Wavelet denoising was skipped because PyWavelets is not installed.
+- Moving-average smoothing and wavelet denoising both slightly hurt the RF level/exclude-self baseline by mean AUPR (raw 0.537, moving-average-3 0.487, wavelet-denoise 0.519); wavelet denoising hurts less than moving-average but neither beats the raw baseline. (PyWavelets is now installed - see `requirements.txt` - so the wavelet-denoise ablation runs as a real variant rather than being skipped.)
 
 ## 8. Dynamic Sparse Validation
 
@@ -315,6 +316,17 @@ This audit explained the experiment 9-11 winners rather than adding models. It t
 
 General lessons (cautious, tied to results): regularization should reflect sparsity/sample size; autoregressive terms are useful controls but can dominate; fusion helps only with complementary errors; predictive ranking and structural recovery are different goals; target formulation changes signal-to-noise; validation must include regime shifts.
 
+## 12. Calibrated Confidence (deployable, gold-free)
+
+This experiment built a deployable pipeline that selects sparse regularization and builds edge confidence without using gold labels (gold is used only for evaluation).
+
+- **Deployable alpha selection works.** BIC is the best rule overall (mean AUPR gap to oracle 0.014), CV next (0.023). CV matches the oracle exactly at Size10, BIC at Size100, and deployable selection retains 96-100% of the oracle sparse model's AUPR. Practical rule: CV at small/dense scale, BIC at large/sparse scale.
+- **Confidence fusion is regime-dependent.** At Size10 the single deployable sparse model wins (AUPR 0.640 vs best confidence 0.609); at Size100 equal-weight `fusion_borda` of the deployable sparse + tree + correlation wins (AUPR 0.183, precision@10 0.72) over every single method.
+- **Confidence rankings are meaningfully calibrated.** Higher-confidence bins have much higher empirical true-edge rates (top bin ~8-11x the bottom bin; positive confidence-vs-true-rate Spearman). ECE magnitudes are large because raw scores are not probabilities, so deployment should threshold by confidence rank, not treat the score as P(edge).
+- **Topology needs a separate decision layer.** Edge ranking, top-k precision, hub recovery, and reciprocal-direction control have different deployable winners. A fixed topology penalty drives the Size100 reciprocal false-positive pair rate to 0 (by suppressing reciprocal pairs) and gives the best Size100 precision@10 (0.76) at a small AUPR cost.
+
+Net: the regime-dependent, gold-free pipeline is reportable as a calibrated-confidence methodology - it is not yet a single dominant method, and still needs an official dynGENIE3 baseline and GNW validation.
+
 ## Cross-Experiment Conclusions
 
 The current evidence supports a cautious story:
@@ -334,6 +346,7 @@ The current evidence supports a cautious story:
 - The Size100 scaling audit weakens the Size10 headline. The specific `dynamic_lasso_level_include_self_a0_03` candidate does not scale: at Size100 it only ties lagged correlation on AUPR, trails it on AUROC, wins 0 of 5 networks, and loses its reciprocal-direction advantage entirely. Higher regularization (`a0_1`) is the best sparse setting at Size100, and lagged GENIE3 wins AUROC on every Size100 network. The include-self sparse family remains worth studying, but the small-network result should not be promoted as a main method.
 - The calibration/fusion audit reframes the alpha question and revives fusion. The best alpha is not magic; it tracks network density (0.03 at Size10, 0.1 at Size100, pushing predicted density toward true density). dynGENIE3-style delta/derivative tree targets hurt versus level GENIE3. Rank fusion of complementary sparse + tree + correlation evidence is the best Size100 AUPR method (`fusion_borda` 0.208, precision@10 0.84), and a fixed reciprocal-direction penalty slightly improves Size100 AUPR and reciprocal false positives. No single method wins both AUPR and AUROC, and self-persistence remains a dominant but interpretation-dangerous term.
 - The mechanism audit makes those reframings causal/explanatory. Alpha is a density knob (best alpha rises as truth sparsens) and deployable CV/BIC proxies pick within one grid step. Include-self helps by controlling persistence (a self-permutation control removes the benefit), but residualizing self does not reproduce the Size10 gain, so joint estimation matters. Fusion wins precisely where base methods are least correlated and true positives draw multi-method support. Edge AUPR and topology recovery are only weakly correlated, and level beats delta/derivative because differencing removes the shared predictable variance (var(delta)/var(level) ~ 0.38; delta ~ derivative on the uniform grid). These read as general statistical lessons, with the specific numbers being DREAM4-specific.
+- The calibrated-confidence experiment turns the lessons into a deployable, gold-free pipeline. Alpha can be chosen without gold labels (CV/BIC retain 96-100% of oracle AUPR), edge confidence from equal-weight method agreement is meaningfully calibrated (high-confidence bins have ~8-11x the true-edge rate of low-confidence bins), and the best method stays regime-dependent (deployable sparse at Size10, fusion at Size100). Topology objectives need a separate decision layer; a fixed topology penalty zeroes reciprocal false positives (by suppressing reciprocal pairs) and maximizes Size100 precision@10.
 
 ## Current Recommendation
 
@@ -344,7 +357,9 @@ The defensible current position is that dynamic GRN inference on DREAM4 is regim
 - At Size100, prefer rank fusion of complementary sparse + tree + correlation evidence (best AUPR, best precision@k) and keep level GENIE3 as the AUROC reference; do not use dynGENIE3-style delta/derivative tree targets, which hurt because differencing strips the shared predictable signal.
 - Treat self-persistence as a model-stability control, not directed-edge evidence: it explains ~59% of next-step level and its coefficient dominates (ratio up to ~117), and a self-permutation control confirms it carries the include-self benefit.
 
-The next concrete steps are: (1) add a literature-faithful (official) dynGENIE3 baseline so the dynamic comparison is fair, since no official package is currently installed; (2) execute the GeneNetWeaver simulation sweeps designed in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` to test whether the density/alpha, residualization, and fusion-complementarity findings generalize; and (3) only then consider perturbation/knockout dynamic models.
+There is now a deployable, gold-free **calibrated-confidence pipeline** (experiment 14): select alpha with CV (small/dense) or BIC (large/sparse), rank edges by equal-weight agreement confidence (Borda / agreement count) of the deployable sparse model + a tree model + correlation, apply a fixed reciprocal/topology penalty when directionality or top-k precision matters, and threshold by confidence rank rather than raw score. It is reportable as a methodology (retains 96-100% of oracle AUPR, calibrated rankings), but not yet a single dominant method because the winner is regime-dependent.
+
+The next concrete steps are: (1) add a literature-faithful (official) dynGENIE3 baseline so the dynamic comparison is fair, since no official package is currently installed; (2) execute the GeneNetWeaver simulation sweeps designed in `experiments/12_gnw_sweep_design/gnw_sweep_design.md` to test whether the density/alpha, residualization, fusion-complementarity, and calibrated-confidence findings generalize; and (3) consolidate the regime-dependent calibrated-confidence pipeline into a methodology report, then consider perturbation/knockout dynamic models.
 
 ## Caveats
 
