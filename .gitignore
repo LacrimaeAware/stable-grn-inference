@@ -42,3 +42,8 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# GeneNetWeaver: external source download (not vendored) + local build output.
+# The wrapper tools/run_gnw.ps1 and docs/gnw_setup.md ARE tracked; re-apply the
+# JDK 17 source patches documented in docs/gnw_setup.md after re-downloading GNW.
+/tools/gnw-3.0-src/
