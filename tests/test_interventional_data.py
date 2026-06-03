@@ -20,8 +20,10 @@ from stable_grn_inference.data import (
     load_replogle_raw_h5ad,
     make_synthetic_interventional,
     perturbation_response_matrix,
+    residualize_against_covariates,
     response_low_rank,
     response_sparsity,
+    shared_response_program,
     split_half_stability,
 )
 
@@ -207,6 +209,22 @@ class ResponseGeometryTest(unittest.TestCase):
         self.assertAlmostEqual(split_half_stability(a, a).iloc[0], 1.0, places=6)
         b = pd.DataFrame([[0.0, 0.0, 1.0]]); c = pd.DataFrame([[1.0, 0.0, 0.0]])
         self.assertAlmostEqual(split_half_stability(b, c).iloc[0], 0.0, places=6)
+
+    def test_shared_response_program_recovers_rank1(self):
+        a = np.array([1.0, 2.0, -1.0, 0.5])
+        p = np.array([0.5, -1.0, 2.0])
+        D = pd.DataFrame(np.outer(a, p), index=["g1", "g2", "g3", "g4"], columns=["A", "B", "C"])
+        res = shared_response_program(D)
+        self.assertGreater(res["program_var_explained"], 0.999)        # pure shared program
+        self.assertLess(float(np.abs(res["residual"].to_numpy()).max()), 1e-8)
+        self.assertEqual(list(res["program"].index), ["A", "B", "C"])
+
+    def test_residualize_against_covariates_removes_linear_part(self):
+        cov = pd.DataFrame({"x": [1.0, 2.0, 3.0, 4.0]}, index=["g1", "g2", "g3", "g4"])
+        # each gene column is an exact linear function of the covariate -> residual ~ 0
+        D = pd.DataFrame({"A": 2.0 * cov["x"] + 1.0, "B": -0.5 * cov["x"]}, index=cov.index)
+        R = residualize_against_covariates(D, cov)
+        self.assertLess(float(np.abs(R.to_numpy()).max()), 1e-8)
 
 
 if __name__ == "__main__":

@@ -22,6 +22,8 @@ from .interventional import (
     perturbation_response_matrix,
     response_low_rank,
     direct_effect_filter,
+    shared_response_program,
+    residualize_against_covariates,
     response_sparsity,
     split_half_stability,
 )
@@ -58,6 +60,8 @@ __all__ = [
     "perturbation_response_matrix",
     "response_low_rank",
     "direct_effect_filter",
+    "shared_response_program",
+    "residualize_against_covariates",
     "response_sparsity",
     "split_half_stability",
     "build_tf_to_gene_candidate_edges",

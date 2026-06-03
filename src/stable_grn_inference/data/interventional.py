@@ -449,6 +449,39 @@ def direct_effect_filter(response: pd.DataFrame, *, n_modes: int):
     return pd.DataFrame(direct, index=idx, columns=cols), pd.DataFrame(broad, index=idx, columns=cols)
 
 
+def shared_response_program(response: pd.DataFrame) -> dict:
+    """Decompose a response matrix into a shared global PROGRAM plus a gene-specific
+    residual: D_g = a_g * p + R_g, where p is the (unit-norm) average response profile
+    across perturbations and a_g = <D_g, p>. Unlike SVD-mode removal this is an
+    interpretable covariate (the generic program every perturbation partly engages); the
+    program is RETURNED as its own object, not discarded."""
+    M = response.to_numpy(dtype=float)
+    p = M.mean(axis=0)
+    pn = p / (np.linalg.norm(p) or 1.0)
+    a = M @ pn
+    R = M - np.outer(a, pn)
+    total = (M ** 2).sum()
+    frac = float(1.0 - (R ** 2).sum() / total) if total > 0 else 0.0
+    return {
+        "program": pd.Series(pn, index=response.columns),
+        "loadings": pd.Series(a, index=response.index),
+        "residual": pd.DataFrame(R, index=response.index, columns=response.columns),
+        "program_var_explained": frac,
+    }
+
+
+def residualize_against_covariates(response: pd.DataFrame, covariates: pd.DataFrame) -> pd.DataFrame:
+    """Remove the part of each gene's response explained by per-perturbation covariates
+    (e.g. self-knockdown strength, log #cells) via per-column OLS. Returns residuals
+    aligned to ``response``. Covariates are indexed by perturbation (``response.index``)."""
+    cov = covariates.reindex(response.index)
+    C = np.column_stack([np.ones(len(cov)), cov.to_numpy(dtype=float)])
+    M = response.to_numpy(dtype=float)
+    beta, *_ = np.linalg.lstsq(C, M, rcond=None)
+    R = M - C @ beta
+    return pd.DataFrame(R, index=response.index, columns=response.columns)
+
+
 def response_sparsity(response: pd.DataFrame) -> pd.Series:
     """Per-perturbation diffuseness as an effective number of responding genes:
     L1^2 / L2^2 in [1, n_genes] (1 = one gene moves, n = uniform/diffuse)."""
