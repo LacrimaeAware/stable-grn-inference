@@ -1,63 +1,114 @@
 # stable-grn-inference
 
-Stability-aware sparse inference for recovering gene regulatory networks from noisy time-series and perturbation data.
+**A research log: can you recover *who regulates whom* from gene-expression data — and what it actually takes to pull structure out of messy dynamic data?**
 
-This repository is a minimal starting scaffold for a research-engineering project on stability-aware sparse gene regulatory network inference. The work so far is focused on DREAM4 Size10 baselines and small stability audits, plus a first DREAM4 Size100 scaling check on the leading dynamic sparse candidate.
+This repo is an honest, end-to-end exploration of **gene regulatory network (GRN) inference**, run across three kinds of data — a clean simulator (DREAM4), real single-cell snapshots (BEELINE), and real CRISPR-perturbation data (CausalBench / Replogle RPE1 Perturb-seq). It documents **25 experiments** the way research actually goes: what we hoped, what happened, the mistakes in hindsight, and the lesson — negatives included.
 
-## Current Milestone
+The headline finding is unglamorous and real:
 
-The first milestone is a reproducible DREAM4 Size10 baseline and stability-audit pipeline:
+> **Whether you can recover causal *direction* is set by the kind of data you have, not by how clever the method is.**
 
-- Inspect DREAM4 expression and gold-standard file formats.
-- Run one-shot edge-ranking baselines across Size10 multifactorial networks.
-- Compare correlation, sparse regression, Elastic Net, and random-forest audit baselines.
-- Run bootstrap/subsampling stability audits on Size10 multifactorial data.
-- Compare Size10 data regimes and a GENIE3-style tree ensemble baseline.
-- Add topology-aware evaluation for hubs, degree patterns, reciprocal edges, and simple motifs.
-- Run a first lagged Size10 time-series audit using within-trajectory source(t) to target(t+1) samples.
-- Run a broad dynamic model batch comparing sparse linear, tree, MLP, stability, rank-fusion, and preprocessing variants.
-- Validate the strongest dynamic sparse-linear candidate for alpha sensitivity, self-persistence, bootstrap behavior, reciprocal errors, and topology metrics.
-- Scale the dynamic sparse candidate to DREAM4 Size100 time-series data as a first scaling check.
-- Compare dynGENIE3-style trees, alpha-calibrated sparse models, and rank fusion across Size10 and Size100, and scaffold a GeneNetWeaver simulation-sweep design.
-- Run a mechanism audit that explains the findings: alpha as a density knob, include-self as a persistence control, fusion via complementary errors, edge-vs-topology disagreement, and level-vs-delta target quality.
-- Build a deployable, gold-free calibrated-confidence pipeline: select alpha without gold labels (CV/BIC), rank edges by equal-weight method-agreement confidence, check calibration, and keep topology objectives in a separate decision layer.
-- Begin a modern single-cell direction: scout modern GRN benchmarks (choose BEELINE) and add a BEELINE adapter (`data/beeline.py`) so the pipeline ingests single-cell datasets (TF→gene candidates, proxy references, EPR), smoke-tested on a synthetic fixture.
-- Run a rigorous diagnostics experiment (with paired-over-networks confidence intervals) that decomposes the error and tests the original stability thesis directly, rather than chasing leaderboards.
-- Compute AUROC, AUPR, and precision@k.
-- Use the audit results to decide what should move to richer data.
+![the regime ladder](docs/figures/fig1_regime_ladder.png)
 
-The Size100 scaling check is a cautionary result: the Size10 candidate `dynamic_lasso_level_include_self_a0_03` does not reproduce its advantage on Size100, so it is kept as a Size10 finding rather than promoted to a main method. The follow-up calibration/fusion audit shows the picture is regime-dependent: the best sparsity level tracks network density, dynGENIE3-style delta/derivative tree targets do not help, and rank fusion of complementary evidence is the strongest Size100 AUPR method. The mechanism audit then explains these results (with deployable CV/BIC alpha selection, a self-permutation control, and an AUPR-vs-topology analysis) and draws general statistical lessons. The calibrated-confidence experiment turns them into a deployable, gold-free pipeline that selects alpha without gold labels (retaining 96-100% of the oracle sparse model's AUPR), ranks edges by calibrated method-agreement confidence, and keeps topology as a separate decision layer; the best method is regime-dependent (deployable sparse at Size10, fusion at Size100), so it is reportable as a methodology rather than a single dominant method. No official dynGENIE3 package is installed, so the delta/derivative tree methods are dynGENIE3-style. See `docs/experiment_summary.md` for details.
+---
 
-## Track A Scope
+## What we found (honest TL;DR)
 
-Track A asks whether sparse directed network inference can be made more reliable by ranking edges with explicit stability information, such as bootstrap or subsampling selection frequencies. The initial repo scope is only the baseline pipeline: data loading, one simple inference method, basic edge-recovery metrics, and plots.
+- **Direction needs the right data, not a better model.** Time-series → direction is nearly free; static snapshots → near-impossible; interventions → recoverable. *(figure above)*
+- **The original thesis — "stability selection makes inference more reliable" — does not hold.** Tested directly with the proper math; it underperforms a single well-tuned fit.
+- **The one clean, transferable positive:** the right amount of regularization is **predictable from sample-complexity theory** (√(log p / n)) in *every* regime — not something you have to grid-search.
+- **On real CRISPR data, simple methods barely predict interventional effects** — and the field's own benchmarks agree: even deep-learning foundation models often fail to beat simple baselines here. This is an *unsolved frontier*, not a thing we were "losing" at.
+- **Every clever idea worked on clean synthetic data and dissolved on real data** — because real Perturb-seq is dominated by one convergent biological "cascade."
 
-Status update: experiment 17 tested this stability thesis directly with formal stability selection (Meinshausen–Bühlmann false-positive bound, trajectory-respecting subsampling) and found it **not supported in its strong form** on DREAM4 — the bound is too loose at p≫n and selection-probability ranking underperforms a single theory/CV-tuned fit. The diagnostics also show the dominant error is **skeleton detection, not edge orientation**, and that the LASSO penalty is predictable from sample-complexity theory (square-root LASSO ≈ grid oracle at Size100).
+![clean vs real](docs/figures/fig2_clean_vs_real.png)
 
-The project then validated this across a **regime ladder** of three data types. Experiment 18 ported the diagnostic battery to a real single-cell benchmark (BEELINE Curated) and found DREAM4's "orientation is easy" result to be **regime-specific**: on static observational data orientation is weak and network-dependent. Experiments 19–20 went to **real interventional data** (CausalBench / Replogle RPE1 Perturb-seq, 651 genes × ~140k cells): orientation becomes **identifiable under intervention** (60.6% of perturbed pairs decidable vs 0.5 observationally), observational edge direction is actually **anti-correlated** with the interventional direction (0.33), observational co-expression is a **weak** predictor of interventional response (transfer AUROC ~0.57), and the theory-predictable penalty holds throughout. The working thesis is now: **directed GRN inference is identifiability-limited, and identifiability is set by the data regime (observational → interventional), not the estimator**; the durable product is a portable diagnostic framework plus a theory-predictable penalty. For the consolidated paper-style writeup of this arc (experiments 17–22), see [`docs/regime_ladder_report.md`](docs/regime_ladder_report.md); for a plain-language, teach-yourself walk through everything the project did, learned, and failed at (with the statistics explained from scratch), see [`docs/project_retrospective.md`](docs/project_retrospective.md); for the running results log, see `docs/experiment_summary.md`.
+---
 
-Track B, graph-wavelet extensions, and finance applications are not part of the initial repository scope. They may become separate pilots or later extensions after the Track A baseline is working.
+## The story in three acts
 
-## Repository Layout
+**Act I — DREAM4 (a clean simulator).** Built the whole pipeline and learned the mechanics: temporal order beats a fancier model, regularization tracks network density, fusion helps only when methods make *different* mistakes, and the stability-selection thesis quietly failed. Decent edge recovery (AUPR ≈ 0.65 vs ≈ 0.33 for plain correlation) — but it's a simulator, so "decent" was expected, not novel.
+
+**Act II — BEELINE (real single-cell).** Ported the exact diagnostics to a real benchmark and found DREAM4's conclusions are **regime-specific**: on static snapshots, edge direction collapses toward a coin-flip and depends heavily on the network. The lesson that became the spine of the project: *the data regime decides what's knowable.*
+
+**Act III — CausalBench / RPE1 (real CRISPR).** Direction returns under intervention and is even *reproducible* across independent cells — but the response is buried under a giant, convergent **cell-cycle cascade**, and no simple structure cleanly survives it.
+
+![the cascade](docs/figures/fig3_cascade.png)
+
+### Why real data is hard: the "whirlpool"
+
+Knock out almost *any* essential gene and the cell runs the **same** emergency program — it stops dividing, moving hundreds of cell-cycle genes together at once. That convergent program is **53% of every perturbation response.** The thing we actually want — "gene A specifically controls gene B" — is a tiny signal riding on top of it, and tangled with it. That single fact explains every faint result in this repo. It's the geometry of the data, not a failure of the methods.
+
+---
+
+## What we got right, and wrong (honest)
+
+**Right** — a portable diagnostic framework; honest negatives that *match the published literature*; the theory-predictable-penalty result; and a clear map of *why* the problem is hard and where the intuitions live in real mathematics.
+
+**Wrong** — we over-narrated early results ("it worked! let's try the next dataset!") instead of reasoning about the data's geometry *first* and predicting that, e.g., a static-snapshot method can't recover direction. The corrected habit: **predict from the geometry, then test only to confirm.** Two days of this also produced a lot of "promising" framings that honest re-checks (multi-seed audits, magnitude controls) later deflated — left in the repo on purpose, because that's what the work actually looked like.
+
+---
+
+## Experiment log
+
+| # | experiment | what we hoped | what happened | lesson |
+|---|---|---|---|---|
+| 01–04 | DREAM4 baselines, GENIE3 | a method beats correlation | correlation is a strong baseline; GENIE3 wins some | don't assume "more ML" wins |
+| 07 | lagged time-series | does temporal order help? | big jump (AUPR 0.30→0.53) | **directional info in the data > clever model** |
+| 08–10 | dynamic sparse, Size100 scaling | the Size10 winner scales | it collapsed at 100 genes | small-network results can be artifacts |
+| 11–14 | calibration, fusion, mechanism, gold-free | explain & deploy the winners | α tracks density; fusion needs complementary errors | regularization is predictable, not magic |
+| 15–18 | BEELINE adapter + diagnostics | DREAM4 results transfer | **they don't** — direction is regime-specific | identifiability is set by the data regime |
+| 19 | interventional benchmark scouting | pick data where direction is identifiable | chose CausalBench (real CRISPR) | go where the evidence actually is |
+| 20 | CausalBench RPE1 diagnostics | direction returns under intervention | yes (0.61 decidable) but reference is dense | interventions help; the response is broad |
+| 21 | response geometry | structure in the response matrix | reproducible direction (0.70); 53% is one mode | the cascade is real and dominant |
+| 22 | covariate-aware cleaning | subtract the cascade → clean core | removing it *hurts*; it's real biology | the nuisance is entangled with the signal |
+| 23 | inverse / "find the stick" | recover wiring from total response | perfect on toy, useless on real | the linear model is too clean for biology |
+| 24 | transferable structure | predict a held-out perturbation | no — each is individualistic | no shared low-rank code to exploit |
+| 25 | counterfactual factor atlas | separate core from nuisance features | **works on planted ground truth**; doesn't transfer to genes | the idea is sound where factors are separable |
+
+*Each experiment has its own write-up under `experiments/NN_*/` with the full numbers, the honest verdict, and (where relevant) figures.*
+
+---
+
+## The bottom line, and the pivot
+
+The "novel gene-network result" path is **effectively closed with these tools** — RPE1 is a genuine unsolved frontier dominated by the cascade, and that was established honestly in two days. The durable value is the understanding.
+
+And the project found its real question along the way: the actual interest was never genes, it was **decomposing dynamic data into mathematical components** — which is a real, named field. The intuitions here map directly onto:
+
+- **state-space / dynamical-systems models** (`dx/dt = f(x) + u`),
+- **Dynamic Mode Decomposition (DMD) / Koopman theory** — born from fluid dynamics, the rigorous version of "subtract the dominant mode, study the deviations,"
+- **SINDy** — literally "recover the differential equation from movement data."
+
+The gene cascade was one ugly, real-world instance of exactly that problem.
+
+---
+
+## Read more
+
+| document | what it is |
+|---|---|
+| [`docs/project_retrospective.md`](docs/project_retrospective.md) | plain-language walk through everything (exp 1–22), **with the statistics explained from scratch** |
+| [`docs/project_retrospective_part2.md`](docs/project_retrospective_part2.md) | the hands-on half (exp 23–25 + the theory-crafting) and the pivot |
+| [`docs/regime_ladder_report.md`](docs/regime_ladder_report.md) | the paper-style consolidated writeup of the interventional arc |
+| [`docs/experiment_summary.md`](docs/experiment_summary.md) | the running, detailed results log |
+
+## Reproduce
+
+```bash
+# Python 3.13, deps in requirements.txt
+$env:PYTHONPATH = "src"
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests          # 145 tests
+.\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick # any experiment
+```
+
+Real datasets (`data/`) and generated tables (`results/`) are git-ignored; the test suite never depends on them (it uses synthetic fixtures). Committed figures are regenerated by `docs/figures/make_figures.py`.
+
+## Layout
 
 ```text
 stable-grn-inference/
-+-- docs/
-|   +-- project_plan.md
-|   +-- data_inventory.md
-|   +-- experiment_summary.md
-|   +-- update_map.md
-+-- src/
-|   +-- stable_grn_inference/
-|       +-- data/
-|       +-- evaluation/
-|       +-- inference/
-|       +-- stability/
-+-- experiments/
-+-- results/             # ignored; generated tables/reports
-+-- private_docs/        # ignored; private planning notes
-+-- requirements.txt
-+-- README.md
+├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
+├── experiments/                # 25 experiments, each with a write-up + script + tests
+├── docs/                       # retrospectives, reports, figures
+└── tests/                      # 145 tests, synthetic fixtures only
 ```
-
-For a consolidated record of completed DREAM4 experiments and current conclusions, see `docs/experiment_summary.md`.
