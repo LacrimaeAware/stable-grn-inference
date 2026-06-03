@@ -11,6 +11,7 @@ Use this as a lightweight checklist for keeping project notes current. Do not up
 | `docs/data_inventory.md` | Raw data files, file formats, selected benchmark files, or loader assumptions change | Data-understanding record |
 | `docs/experiment_summary.md` | A completed experiment changes the cross-experiment interpretation | Central results and conclusions reference |
 | `docs/regime_ladder_report.md` | The exp17–22 narrative (regime ladder + response geometry) changes | Consolidated paper-style report of the interventional arc |
+| `docs/project_retrospective.md` | A major checkpoint or honest reframing of the whole project happens | Plain-language, teach-yourself walk through everything done, learned, and failed |
 | `experiments/*/*.md` | An experiment is added, rerun with important results, or limitations change | Local guide for each experiment; use descriptive names, not `README.md` |
 | `docs/update_map.md` | Documentation conventions change | Keeps this checklist useful |
 
