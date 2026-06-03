@@ -1,85 +1,48 @@
-# Experiment 25 — Counterfactual factor atlas: your sub-feature idea, validated then applied
+# Experiment 25: counterfactual factor atlas
 
-## The idea (yours), stated cleanly
+## The method
 
-Don't describe an example only by its class ("a 9"). Describe it as a **class plus reusable
-sub-features that cut across classes** (red, thick, slanted). A sub-feature is **core** to a
-class only if:
-- **removing** it from the class's examples **breaks** the class (necessity), and
-- **adding** it to a *rival* class **converts** the rival (sufficiency).
+Describe an example as a class plus reusable sub-features that cut across classes (for example a digit with attributes like color, thickness, slant). A sub-feature is core to a class only if:
+- removing it from the class's examples breaks the class (necessity), and
+- adding it to a rival class converts the rival (sufficiency).
 
-If a feature can be moved across classes without changing identity, it's a transferable
-**nuisance/style** factor. A **shortcut** is a nuisance factor that's spuriously glued to a
-class in the training data ("all 9s are red"); the counterfactual test should *see through* it.
-Separating core from nuisance is an **anti-overfitting** tool.
+A feature that can be moved across classes without changing identity is a transferable nuisance/style factor. A shortcut is a nuisance factor that is spuriously correlated with a class in the training data (for example, all examples of one class share a color); the counterfactual test should separate it from the core. Separating core from nuisance is an anti-overfitting tool.
 
-This experiment does two things in order, and the order is the point: **prove the test is
-faithful on ground truth first, then apply the validated test to genes.**
+The experiment runs in two steps: validate the test on synthetic data with known ground truth, then apply the validated test to genes.
 
-## Part A — synthetic positive control (ground truth known)
+## Part A: synthetic positive control (ground truth known)
 
-I planted three kinds of sub-feature into two-class data: a real **core** factor, an innocent
-**nuisance** factor, and a **shortcut** (separate direction, but on for 90% of class-1 and 10%
-of class-0 in training — spuriously correlated). Then I ran your test.
+Three sub-features were planted into two-class data: a core factor, a nuisance factor, and a shortcut (a separate direction, on for 90% of class-1 and 10% of class-0 in training, so spuriously correlated).
 
 | planted factor | necessity R (high = not needed) | sufficiency A (high = converts) | core_score |
 | --- | --- | --- | --- |
-| **core** | **0.04** | **0.96** | **0.92** |
+| core | 0.04 | 0.96 | 0.92 |
 | shortcut | 0.98 | 0.03 | 0.0006 |
 | nuisance | ~1.00 | ~0.00 | ~0.000 |
 
-- Sub-features were **discovered from unlabeled deltas at ARI = 1.0** (recovered perfectly).
-- The test **marks core as core** (removing breaks it, adding converts) and **sees through the
-  shortcut** (core_score ≈ 0 despite the training correlation).
-- **The anti-overfitting payoff:** trained where the shortcut is glued to class 1, then tested
-  on the *flipped* combinations (class-1-without-shortcut, class-0-with-shortcut), the **raw
-  classifier overfits → 0.89**, while **projecting out the discovered nuisance directions →
-  1.00**. The factored representation generalizes to unseen class×factor combinations.
+- Sub-features were discovered from unlabeled deltas at ARI 1.0.
+- The test marks the core factor as core (removing breaks it, adding converts) and assigns the shortcut a near-zero core_score despite its training correlation.
+- Anti-overfitting check: a classifier trained where the shortcut is glued to class 1, then tested on the flipped combinations (class-1 without the shortcut, class-0 with it), reaches 0.89. Projecting out the discovered nuisance directions first raises this to 1.00.
 
-**Part A verdict: PASS.** Your idea is real, and the implementation is faithful — proven where
-truth is known. This is the positive control that makes any real-data verdict trustworthy
-(if it had failed here, the bug would be mine, not the data's).
+Part A result: on planted ground truth the test recovers the factors, separates core from nuisance, and the factored representation generalizes to unseen class-by-factor combinations. This is the positive control for the real-data application.
 
-## Part B — apply the validated tool to real RPE1 genes
+## Part B: application to RPE1 genes
 
-Examples = perturbation responses Δ_g (651). The dominant shared program (53% of variance) is
-the cell-cycle/proliferation axis (H2AFZ, TUBA1B, RRM2, NASP…). Two questions, mapping your
-"true 9" idea onto genes:
+Examples are the perturbation responses (651 genes). The dominant shared program (53% of variance) is the cell-cycle / proliferation axis (H2AFZ, TUBA1B, RRM2, NASP).
 
-1. **Is the cell-cycle a nuisance factor that cuts across response-modules (like redness)?**
-   The module counterfactual gave R=0.17 — but I'm flagging this as **artifact-prone for genes**:
-   removing a 53%-of-variance axis mechanically moves every point off the old cluster centroids,
-   so the reassignment isn't a clean nuisance signal. *Don't over-read it.*
-2. **Does removing it reveal a cleaner "true function" core?** A single seed suggested yes
-   (module ARI 0.59 → 0.65). **Verified across 15 (k, seed) settings, that reverses:** mean gain
-   **−0.12**, residual wins only **33%** of the time. So removing the shared program does **not**
-   reliably reveal a more reproducible core — on average it's *worse*. (This matches exp22, where
-   removing the program hurt per-perturbation stability.)
+1. Is the cell-cycle program nuisance-like with respect to response modules? The module counterfactual gave R=0.17. This test is artifact-prone for genes: removing a 53%-of-variance axis mechanically moves points off the original cluster centroids, so the reassignment is not a clean nuisance signal.
+2. Does removing it reveal a cleaner core? A single seed suggested yes (module ARI 0.59 to 0.65). Across 15 (k, seed) settings this reverses: mean gain -0.12, residual wins 33% of the time. Removing the shared program does not reliably reveal a more reproducible core. This matches experiment 22, where removing the program reduced per-perturbation stability.
 
-> The single-seed "positive" was a seed artifact; the multi-seed check killed it. I'm leaving
-> this in the write-up on purpose — it's the exact failure mode you were worried about, and the
-> verification is what makes the negative trustworthy.
+The single-seed positive was a seed artifact; the multi-seed check removes it.
 
-**Part B verdict: the decomposition does NOT cleanly transfer to genes.** A dominant shared
-program exists, but — unlike redness-and-a-9 — it is **entangled with real gene function**, so
-factoring it out does not leave a cleaner core. The "true 9" move works when the nuisance is
-genuinely orthogonal to identity; in genes the biggest shared axis is *part of* the biology.
+Part B result: the decomposition does not transfer to genes. The dominant shared program is entangled with real gene function, so factoring it out does not leave a cleaner core. The decomposition works when the nuisance is orthogonal to identity; the cell-cycle axis is part of the biology.
 
-## Bottom line (a precise map of where your idea applies)
+## Summary
 
-- **Your sub-feature / counterfactual idea is genuinely real and powerful** — Part A is a clean,
-  reproducible positive control, not hype: discover factors without labels, separate core from
-  nuisance, see through shortcuts, and beat overfitting on unseen combinations.
-- **It needs factors that are separable from identity.** It shines exactly where that holds
-  (the synthetic world here; presumably digits/Track B). **Genes are a case where it partially
-  breaks**, because the dominant shared factor is woven into the thing you'd call the "core."
-- That's not a dead end for the idea — it's a *map*. The natural next homes are domains where the
-  reusable factors really are separable from class identity (Track B's digits; or a gene setting
-  with a *known, separable* covariate like cell-line/batch rather than the entangled cell cycle).
+- The counterfactual test works as designed on synthetic data: discover factors without labels, separate core from nuisance, identify shortcuts, and reduce overfitting on unseen combinations.
+- It requires factors that are separable from identity. It applies where that holds (the synthetic data here) and does not transfer to RPE1, where the dominant shared factor is part of the core biology.
+- A natural application is a setting with a known, separable covariate (for example cell-line or batch) rather than the entangled cell cycle.
 
-## Engineering
-New tested library: `src/stable_grn_inference/analysis/factor_atlas.py`
-(`make_factor_atlas_data`, `discover_factor_directions`, `counterfactual_necessity_sufficiency`,
-`held_out_combination_accuracy`, `project_out_directions`) with correctness tests that assert the
-core/nuisance separation, shortcut see-through, and anti-overfitting generalization on planted
-ground truth (4 tests). `data/` and `results/` stay git-ignored; gene tests never touch the real file.
+## Implementation
+
+`src/stable_grn_inference/analysis/factor_atlas.py` (`make_factor_atlas_data`, `discover_factor_directions`, `counterfactual_necessity_sufficiency`, `held_out_combination_accuracy`, `project_out_directions`) with 4 tests asserting core/nuisance separation, shortcut identification, and anti-overfitting generalization on planted ground truth. `data/` and `results/` are git-ignored; tests use synthetic fixtures.

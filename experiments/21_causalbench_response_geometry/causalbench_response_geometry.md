@@ -50,7 +50,7 @@ So roughly half the response *vectors* are reproducible across independent cell 
 rest are noise-dominated (often few-cell perturbations). This gives a principled
 trustworthiness filter that replaces the crude >100-cell cutoff.
 
-### 4. Interventional orientation is REPRODUCIBLE across cell halves — the headline
+### 4. Interventional orientation is reproducible across cell halves
 This is the metric exp20 could not provide. Exp20 showed direction is *decidable* (you can
 pick one); it could not show the pick is *correct* (no ground truth). Here we verify
 directionality **without any ground truth**: compute the asymmetry-implied direction

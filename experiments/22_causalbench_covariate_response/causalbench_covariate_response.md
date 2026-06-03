@@ -12,7 +12,7 @@ mode hurt — it removed real directional signal. So the obvious next question:
 
 This experiment answers that with covariate-aware methods instead of blind SVD deletion.
 
-## What we did
+## Method
 
 On the real RPE1 response matrix (651 perturbations × 651 genes), all on the same data:
 1. **Characterized the global mode** — does it track gene abundance / library size / #cells

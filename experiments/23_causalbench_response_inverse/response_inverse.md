@@ -1,26 +1,17 @@
 # Experiment 23 — Response inverse / deconvolution ("solve the flow field for the stick")
 
-## The idea (your stick-in-the-water, as math)
+## The method
 
-The response matrix D we measured is the **total** effect of each perturbation: direct wiring
-*plus* everything that propagated downstream *plus* the global cell-state shift. In a simple
-linear-propagation model, a sparse **direct** operator W generates the total response by
-spreading out:
+The response matrix D is the total effect of each perturbation: direct wiring plus propagated downstream effects plus the global cell-state shift. In a simple linear-propagation model, a sparse direct operator W generates the total response:
 
 > D = (I − W)⁻¹ − I = W + W² + W³ + …  (direct + indirect + …)
 
-and the **exact inverse** recovers the direct wiring: **W = I − (I + D)⁻¹**. That is literally
-"given the whole flow field, solve backward for the stick that bent it." This experiment asks
-whether any simple version of that inversion turns the dense total response into a sparser,
-more stable, more *direct*-looking operator on real data.
+The exact inverse recovers the direct operator: W = I − (I + D)⁻¹. This experiment tests whether any simple version of that inversion turns the dense total response into a sparser, more stable, more direct-looking operator on real data.
 
-## Pre-registered prediction (so the verdict is honest either way)
+## Expected behavior
 
-- Synthetic, model TRUE: noiseless inverse recovers W exactly; degrades gracefully with noise.
-- Real RPE1: I expected the raw inverse to **not** beat the raw |D| baseline — matrix inversion
-  amplifies noise, so it should be **less** split-half stable and should **not** reconstruct
-  held-out response better. ~65% "mixed/failed." The one genuine unknown: whether a *sparse*
-  (Lasso) deconvolution would be more stable.
+- Synthetic, model true: the noiseless inverse recovers W exactly and degrades gradually with noise.
+- Real RPE1: matrix inversion amplifies noise, so the inverse is expected to be less split-half stable than the raw |D| baseline and not to reconstruct held-out response better. The open question is whether a sparse (Lasso) deconvolution is more stable.
 
 ## Part 0 — synthetic sanity check (mandatory)
 
@@ -35,9 +26,7 @@ levels. Recovery of the true direct edges (|W| ranked against the true nonzeros)
 | 25% | 0.89 | 0.70 | moderate |
 | 50% | 0.73 | 0.66 | large |
 
-**The machinery is correct and genuinely useful when the model holds:** noiseless recovery is
-exact, and the inverse beats the raw response at finding direct edges through moderate noise.
-This is the necessary control — if it had failed here, no real-data result could be trusted.
+The inverse recovers the direct edges when the model holds: noiseless recovery is exact, and the inverse beats the raw response at finding direct edges through moderate noise. This is the control for the real-data application.
 
 ## Part 1–3 — real RPE1 (651 × 651 response operator)
 
@@ -58,19 +47,13 @@ the raw response (0.345 → 0.09–0.19), does **not** improve direction reprodu
 \*The sparse Lasso deconvolution's apparent **0.999 "direction reproducibility" is an artifact,
 not a result**: it produces a near-all-zeros operator, and the metric counts "both directions
 are zero" as agreement. Its true reconstruction is ≈0 (−0.01), confirming it captures almost
-nothing of the response. Flagged honestly rather than reported as a win.
+nothing of the response. This is an artifact, not a result.
 
-## Verdict — MIXED, leaning NEGATIVE (as predicted)
+## Result: mixed, leaning negative
 
-> The linear-propagation model that makes the inverse work *perfectly on synthetic data*
-> does **not** hold well enough on real RPE1 for the inversion to add value. The inverse is
-> sparser but noisier; it buys nothing over the raw response.
+The linear-propagation model that makes the inverse exact on synthetic data does not hold well enough on real RPE1 for the inversion to add value. The inverse is sparser but noisier and does not improve over the raw response.
 
-This matches the pre-registration. It is a **clean, bounded swing that mostly failed on real
-data** — and that failure is itself informative: it rules out the tempting "just deconvolve the
-response into a sparse graph" route, and tells us the real perturbation response is not
-well-described by a simple linear (I − W)⁻¹ generator (noise, nonlinearity, and the cell-cycle
-confound break the assumption). Do **not** center the project on inverse-response.
+The failure rules out the simple linear-deconvolution route: the real perturbation response is not well-described by a simple linear (I − W)⁻¹ generator, since noise, nonlinearity, and the cell-cycle confound break the assumption.
 
 ## What should be committed
 - `src/.../data/interventional.py`: `make_sparse_dag`, `propagation_forward`,

@@ -38,7 +38,7 @@ CausalBench is the default target, and nothing in scouting argues against it:
 
 1. **It is built around the right evaluation.** Held-out interventional scoring (mean
    Wasserstein of child under parent-knockdown vs control, plus a Mann–Whitney
-   false-omission-rate) is exactly the paradigm experiment 18 said we need. It sidesteps
+   false-omission-rate) is the paradigm indicated by experiment 18. It sidesteps
    the proxy-reference problem instead of importing it.
 2. **It is packaged and reproducible** (`pip install causalscbench`), unlike raw
    Replogle/Norman/Frangieh which need bespoke heavy preprocessing.
@@ -47,7 +47,7 @@ CausalBench is the default target, and nothing in scouting argues against it:
    (skeleton, alpha selection, fusion, stability) and the new interventional orientation
    test run on the *same* data — a clean within-dataset comparison.
 4. **It is the right size to be careful about**: ~163k cells × hundreds of genes per
-   line. Not tiny. So we do **not** auto-download; we stage it deliberately.
+   line. Not tiny, so it is not auto-downloaded; it is staged deliberately.
 
 ### Why it beats BEELINE Curated for directionality
 
@@ -143,7 +143,7 @@ per-cell intervention label, which maps onto these two frames directly.
 3. Run the transferring diagnostics on the observational subset (skeleton, alpha, fusion,
    stability) **plus** the rebuilt `interventional_orientation_asymmetry` on the perturbed
    block, with the coverage caveat.
-4. Headline question for exp20: *does orientation become identifiable under intervention
+4. Question for exp20: *does orientation become identifiable under intervention
    (asymmetry accuracy ≫ 0.5 on real data), and do the exp17 positives (theory-α, skeleton
    framing) still hold in a genuinely causal regime?*
 

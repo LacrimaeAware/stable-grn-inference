@@ -13,14 +13,14 @@ CausalBench RPE1 (interventional)  -> orientation becomes IDENTIFIABLE  <- this 
 
 The user downloaded the **raw genome-wide** Replogle RPE1 file (`rpe1_raw_singlecell_01.h5ad`,
 ~8.7 GB, dense **247,914 cells × 8,749 genes**) — not CausalBench's smaller preprocessed
-file. I added a memory-efficient loader (`load_replogle_raw_h5ad`) that:
+file. A memory-efficient loader (`load_replogle_raw_h5ad`) was added that:
 
 - reads only the **perturbed∩measured gene-column block** in row chunks (never densifies
   all 8,749 genes),
 - normalizes each cell by `obs['UMI_count']` (= scanpy `normalize_per_cell` to the median
   total) then `log1p` (matching CausalBench preprocessing),
 - keeps perturbations with **>100 cells** (CausalBench's 383 comes from extra
-  knockdown-strength filtering I skipped; >100-cell gives **651** perturbed&measured genes).
+  knockdown-strength filtering not applied; >100-cell gives **651** perturbed&measured genes).
 
 Loaded working set: **651 genes, 139,825 cells, 11,485 control (`non-targeting`) cells**,
 423,150 directed candidate edges (perturbed source × target). The 11,485 controls match
@@ -28,7 +28,7 @@ CausalBench's reported RPE1 observational count exactly — a good sanity check.
 
 ## Results (full run; subsampling n_ctrl=4000, n_pert=400, 12 control-null splits)
 
-### 1. Orientation becomes identifiable under intervention — the headline
+### 1. Orientation becomes identifiable under intervention
 
 For both-perturbed pairs, direction is read from the interventional asymmetry
 (`effect(A→B) = Wasserstein(B | knockdown A, B | control)`; predict A→B if
@@ -91,7 +91,7 @@ regimes (DREAM4, BEELINE, CausalBench).
 
 ## Honest caveats
 
-- **Decidability ≠ verified accuracy.** We have no exact directed ground truth, so 0.606 is
+- **Decidability ≠ verified accuracy.** There is no exact directed ground truth, so 0.606 is
   the fraction of pairs where intervention *lets you decide* a direction, not a verified
   correctness rate. The asymmetry is directional *evidence*, not proof (indirect/downstream
   effects, compensation, off-target knockdown, cell-state shifts).
@@ -99,7 +99,7 @@ regimes (DREAM4, BEELINE, CausalBench).
   graph** (density 0.82). It conflates direct and indirect effects. A sparser, more-direct
   reference (top-k effects per source; require strong self-knockdown) is the natural exp21
   refinement.
-- **>100-cell filter, not CausalBench's strong-perturbation filter** (I skipped the
+- **>100-cell filter, not CausalBench's strong-perturbation filter** (skipping the
   summary-stats download). Results are on a slightly larger, noisier perturbation set.
 - Subsampling (4,000 control / 400 per perturbation) bounds the Wasserstein cost; seeded
   and reproducible, but estimates carry sampling noise.
