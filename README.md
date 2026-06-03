@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 25 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 26 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -52,6 +52,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 - exp 23. Inverse / deconvolution (W = I minus (I + D) inverse). Exact recovery on synthetic linear systems; no improvement over the raw effect on RPE1.
 - exp 24. Leave-one-perturbation-out prediction. Shared low-rank structure does not predict a held-out perturbation better than its own split-half estimate.
 - exp 25. Counterfactual feature test (remove a feature: does class identity survive; add it to a rival: does the rival convert). Recovers planted ground truth on synthetic data; does not separate cell-cycle from gene-specific effects on RPE1.
+- exp 26. Perturbation essentiality and cascade position. Ranking genes by knockout-response magnitude, breadth, and cascade engagement gives a reproducible essentiality axis (split-half 0.97) that recovers known essential machinery (ribosome, spliceosome, proteasome, nuclear pore). A net-effect ordering separates upstream information-processing genes from downstream cell-cycle and structural effectors, also reproducible (0.99).
 
 ## Experiment log
 
@@ -71,6 +72,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 23    | inverse deconvolution | W = I - (I+D)^-1 | exact on synthetic; no gain on RPE1 |
 | 24    | held-out perturbation | low-rank prediction | no transfer beyond self-estimate |
 | 25    | counterfactual feature test | necessity / sufficiency | recovers synthetic truth; no transfer to RPE1 |
+| 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | essentiality reproducible (0.97), recovers known machinery; cascade position reproducible (0.99), upstream vs downstream separable |
 
 ## Reproduce
 
@@ -89,7 +91,7 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 25 experiments, each with a write-up, script, and tests
+├── experiments/                # 26 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
 └── tests/                      # 145 tests, synthetic fixtures only
 ```

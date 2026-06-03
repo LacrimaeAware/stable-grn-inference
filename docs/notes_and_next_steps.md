@@ -13,6 +13,10 @@ The underlying interest is decomposing dynamic data into reusable components, no
 - The bottleneck on RPE1 is a dominant convergent component (cell-cycle), not a missing method. Specific effects are small relative to it and not cleanly separable.
 - Reason about the data geometry before running a test. Predict whether a method can work given what the data contains, then test to confirm.
 
+## Status
+
+Experiment 26 used the cascade as signal rather than removing it. A data-derived essentiality ranking (knockout-response magnitude, breadth, cascade engagement) is split-half reproducible at 0.97 and recovers known essential machinery (ribosome, spliceosome, proteasome, nuclear pore). A net-effect ordering separates upstream information-processing genes from downstream cell-cycle and structural effectors, reproducible at 0.99. The natural next step is external validation against annotated essentiality (DepMap gene-effect scores) and turning the coarse net-effect ordering into a verified causal sequence.
+
 ## Direction going forward
 
 The general problem (separating a dominant shared mode from smaller specific structure in dynamic data) has established machinery: Dynamic Mode Decomposition, Koopman operator theory, and SINDy. The plan is to build fluency in these on controlled synthetic dynamical systems where the components are known and recovery can be graded directly:
