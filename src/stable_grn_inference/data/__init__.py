@@ -19,6 +19,11 @@ from .interventional import (
     interventional_orientation_asymmetry,
     load_interventional_frames,
     make_synthetic_interventional,
+    perturbation_response_matrix,
+    response_low_rank,
+    direct_effect_filter,
+    response_sparsity,
+    split_half_stability,
 )
 from .dream4 import (
     SIZE10_DATA_REGIMES,
@@ -50,6 +55,11 @@ __all__ = [
     "interventional_orientation_asymmetry",
     "load_interventional_frames",
     "make_synthetic_interventional",
+    "perturbation_response_matrix",
+    "response_low_rank",
+    "direct_effect_filter",
+    "response_sparsity",
+    "split_half_stability",
     "build_tf_to_gene_candidate_edges",
     "infer_expression_orientation",
     "label_candidate_edges",

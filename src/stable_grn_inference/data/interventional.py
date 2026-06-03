@@ -360,6 +360,116 @@ def interventional_orientation_asymmetry(
     }
 
 
+# ---------------------------------------------------------------------------
+# Perturbation-response geometry (experiment 21).
+#
+# The shared object with Track B: an intervention produces a displacement vector
+# (here, a gene perturbation -> an expression-response delta), and we study the
+# GEOMETRY of those displacements -- their rank, sparsity, stability, and how much
+# is a broad/global mode versus a sharp/direct effect. None of this assumes a gene
+# ordering or graph, so no wavelets/scattering are forced onto unordered genes.
+# ---------------------------------------------------------------------------
+
+
+def perturbation_response_matrix(dataset: "InterventionalDataset", *, split_half: bool = False,
+                                 seed: int = 0):
+    """Mean-shift response matrix D[g, j] = mean(X_j | perturb g) - mean(X_j | control).
+
+    Rows are perturbed genes, columns are all measured genes. This is the Track-A analog
+    of Track B's transformation delta. If ``split_half`` is True, also returns two
+    independent half-sample response matrices (D_a, D_b) for stability analysis: control
+    and each perturbation's cells are split in half and the response recomputed on each.
+    """
+    expr = dataset.expression
+    genes = list(expr.columns)
+    X = expr.to_numpy(dtype=float)
+    labels = dataset.perturbation_labels.to_numpy()
+    ctrl = dataset.is_control.to_numpy()
+    perturbed = list(dataset.perturbed_genes)
+
+    def _matrix(row_mask_fn, ctrl_mask):
+        ctrl_mean = X[ctrl_mask].mean(axis=0)
+        rows = [X[row_mask_fn(g)].mean(axis=0) - ctrl_mean for g in perturbed]
+        return pd.DataFrame(np.vstack(rows), index=perturbed, columns=genes)
+
+    full = _matrix(lambda g: labels == g, ctrl)
+    if not split_half:
+        return full
+
+    rng = np.random.default_rng(seed)
+    half = np.zeros(X.shape[0], dtype=int)
+    for grp in [None] + perturbed:
+        idx = np.where(ctrl if grp is None else (labels == grp))[0]
+        sel = rng.permutation(idx)
+        half[sel[: len(sel) // 2]] = 0
+        half[sel[len(sel) // 2:]] = 1
+    ca, cb = ctrl & (half == 0), ctrl & (half == 1)
+    da = _matrix(lambda g: (labels == g) & (half == 0), ca)
+    db = _matrix(lambda g: (labels == g) & (half == 1), cb)
+    return full, da, db
+
+
+def response_low_rank(response: pd.DataFrame, *, var_cutoff: float = 0.9) -> dict:
+    """SVD spectrum of a response matrix: how low-rank / global-mode-dominated is it?
+
+    Returns rank at the variance cutoff, normalized spectral entropy (1 = diffuse,
+    ~0 = single dominant mode), singular values, and cumulative variance explained.
+    """
+    M = response.to_numpy(dtype=float)
+    s = np.linalg.svd(M, compute_uv=False)
+    var = s ** 2
+    total = var.sum()
+    frac = var / total if total > 0 else np.zeros_like(var)
+    cum = np.cumsum(frac)
+    rank = int(np.searchsorted(cum, var_cutoff) + 1)
+    nz = frac[frac > 0]
+    entropy = float(-(nz * np.log(nz)).sum() / np.log(len(frac))) if len(frac) > 1 else 0.0
+    return {
+        "rank_at_cutoff": rank,
+        "spectral_entropy": entropy,
+        "singular_values": s,
+        "var_explained": frac,
+        "cum_var_explained": cum,
+        "top1_var": float(frac[0]) if len(frac) else float("nan"),
+    }
+
+
+def direct_effect_filter(response: pd.DataFrame, *, n_modes: int):
+    """Remove the top ``n_modes`` global SVD modes from a response matrix, returning the
+    'direct' residual responses (broad/global transcriptional component subtracted).
+    Also returns the removed component. Use to sharpen a dense interventional response."""
+    M = response.to_numpy(dtype=float)
+    if n_modes <= 0:
+        return response.copy(), response.iloc[:, :0].copy()
+    U, s, Vt = np.linalg.svd(M, full_matrices=False)
+    k = min(n_modes, len(s))
+    broad = (U[:, :k] * s[:k]) @ Vt[:k]
+    direct = M - broad
+    idx, cols = response.index, response.columns
+    return pd.DataFrame(direct, index=idx, columns=cols), pd.DataFrame(broad, index=idx, columns=cols)
+
+
+def response_sparsity(response: pd.DataFrame) -> pd.Series:
+    """Per-perturbation diffuseness as an effective number of responding genes:
+    L1^2 / L2^2 in [1, n_genes] (1 = one gene moves, n = uniform/diffuse)."""
+    M = response.to_numpy(dtype=float)
+    l1 = np.abs(M).sum(axis=1)
+    l2sq = (M ** 2).sum(axis=1)
+    eff = np.divide(l1 ** 2, l2sq, out=np.full(M.shape[0], np.nan), where=l2sq > 0)
+    return pd.Series(eff, index=response.index, name="effective_responders")
+
+
+def split_half_stability(response_a: pd.DataFrame, response_b: pd.DataFrame) -> pd.Series:
+    """Per-perturbation cosine similarity between two independent half-sample responses.
+    High = the response vector is reproducible (real); low = noise-dominated."""
+    A = response_a.to_numpy(dtype=float)
+    B = response_b.to_numpy(dtype=float)
+    num = (A * B).sum(axis=1)
+    den = np.linalg.norm(A, axis=1) * np.linalg.norm(B, axis=1)
+    cos = np.divide(num, den, out=np.full(A.shape[0], np.nan), where=den > 0)
+    return pd.Series(cos, index=response_a.index, name="split_half_cosine")
+
+
 def detect_causalbench(search_dirs: list[Path] | None = None) -> dict:
     """Best-effort check for a local CausalBench install / data, without downloading.
 

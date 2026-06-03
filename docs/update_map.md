@@ -62,6 +62,7 @@ experiments/17_dream4_stability_orientation_diagnostics/stability_orientation_di
 experiments/18_beeline_diagnostics/beeline_diagnostics.md
 experiments/19_interventional_grn_benchmark_scouting/interventional_benchmark_scouting.md
 experiments/20_causalbench_rpe1_interventional/causalbench_rpe1_interventional.md
+experiments/21_causalbench_response_geometry/causalbench_response_geometry.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md

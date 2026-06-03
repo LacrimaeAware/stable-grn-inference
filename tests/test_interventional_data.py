@@ -12,12 +12,17 @@ import pandas as pd
 
 from stable_grn_inference.data import (
     build_candidate_edges_from_perturbations,
+    direct_effect_filter,
     interventional_effect_matrix,
     interventional_orientation_asymmetry,
     load_causalbench,
     load_interventional_frames,
     load_replogle_raw_h5ad,
     make_synthetic_interventional,
+    perturbation_response_matrix,
+    response_low_rank,
+    response_sparsity,
+    split_half_stability,
 )
 
 
@@ -151,6 +156,57 @@ class ReplogleRawLoaderTest(unittest.TestCase):
         self.assertEqual(ds.metadata["n_control_cells"], 40)
         self.assertEqual(ds.metadata["n_cells"], 200)                  # 40 + 80 + 80
         self.assertTrue(np.isfinite(ds.expression.to_numpy()).all())   # normalized + log1p
+
+
+class ResponseGeometryTest(unittest.TestCase):
+    def _dataset(self):
+        expr, perturb, true_edges = make_synthetic_interventional(
+            n_genes=6, n_cells_per_condition=100, edge_density=0.4, seed=3
+        )
+        return load_interventional_frames("d", expr, perturb, reference_edges=true_edges)
+
+    def test_response_matrix_self_knockdown_is_negative(self):
+        ds = self._dataset()
+        D = perturbation_response_matrix(ds)
+        self.assertEqual(D.shape, (len(ds.perturbed_genes), len(ds.genes)))
+        # the synthetic fixture forces the perturbed gene low -> its own response is negative
+        diag = [D.loc[g, g] for g in ds.perturbed_genes]
+        self.assertLess(float(np.mean(diag)), 0.0)
+
+    def test_split_half_matrices_returned(self):
+        ds = self._dataset()
+        D, da, db = perturbation_response_matrix(ds, split_half=True, seed=0)
+        self.assertEqual(da.shape, D.shape)
+        stab = split_half_stability(da, db)
+        self.assertEqual(len(stab), len(ds.perturbed_genes))
+        self.assertTrue((stab.dropna() <= 1.0001).all())
+
+    def test_response_low_rank_on_rank1(self):
+        u = np.arange(1, 8, dtype=float)[:, None]
+        v = np.array([[1.0, -2.0, 0.5, 3.0]])
+        D = pd.DataFrame(u @ v)
+        res = response_low_rank(D, var_cutoff=0.9)
+        self.assertEqual(res["rank_at_cutoff"], 1)
+        self.assertGreater(res["top1_var"], 0.999)
+
+    def test_direct_effect_filter_removes_rank1(self):
+        rng = np.random.default_rng(0)
+        u = rng.normal(size=(10, 1)); v = rng.normal(size=(1, 5))
+        D = pd.DataFrame(u @ v)
+        direct, broad = direct_effect_filter(D, n_modes=1)
+        self.assertLess(float(np.abs(direct.to_numpy()).max()), 1e-8)
+
+    def test_response_sparsity_bounds(self):
+        D = pd.DataFrame([[5.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0]])
+        eff = response_sparsity(D)
+        self.assertAlmostEqual(eff.iloc[0], 1.0, places=5)   # one responder
+        self.assertAlmostEqual(eff.iloc[1], 4.0, places=5)   # fully diffuse
+
+    def test_split_half_stability_identical_and_orthogonal(self):
+        a = pd.DataFrame([[1.0, 2.0, 3.0], [0.0, 1.0, 0.0]])
+        self.assertAlmostEqual(split_half_stability(a, a).iloc[0], 1.0, places=6)
+        b = pd.DataFrame([[0.0, 0.0, 1.0]]); c = pd.DataFrame([[1.0, 0.0, 0.0]])
+        self.assertAlmostEqual(split_half_stability(b, c).iloc[0], 0.0, places=6)
 
 
 if __name__ == "__main__":
