@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 26 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 27 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -53,6 +53,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 - exp 24. Leave-one-perturbation-out prediction. Shared low-rank structure does not predict a held-out perturbation better than its own split-half estimate.
 - exp 25. Counterfactual feature test (remove a feature: does class identity survive; add it to a rival: does the rival convert). Recovers planted ground truth on synthetic data; does not separate cell-cycle from gene-specific effects on RPE1.
 - exp 26. Perturbation essentiality and cascade position. Ranking genes by knockout-response magnitude, breadth, and cascade engagement gives a reproducible essentiality axis (split-half 0.97) that recovers known essential machinery (ribosome, spliceosome, proteasome, nuclear pore). A net-effect ordering separates upstream information-processing genes from downstream cell-cycle and structural effectors, also reproducible (0.99).
+- exp 27. Cascade-adjacent edges. Tests whether genes adjacent in the cascade ordering give more direct edges. They do not: ordering distance is uncorrelated with how chain-explained a pair is (-0.06), and restricting to ordering-local pairs lowers edge reproducibility (0.43 vs 0.81 for the raw effect). The convergent cascade provides a strong indirect path for nearly every pair regardless of ordering position. Observational correlation is the most reproducible edge ranking (0.91).
 
 ## Experiment log
 
@@ -73,6 +74,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 24    | held-out perturbation | low-rank prediction | no transfer beyond self-estimate |
 | 25    | counterfactual feature test | necessity / sufficiency | recovers synthetic truth; no transfer to RPE1 |
 | 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | essentiality reproducible (0.97), recovers known machinery; cascade position reproducible (0.99), upstream vs downstream separable |
+| 27    | cascade-adjacent edges | ordering distance vs mediation; local edge reproducibility | hypothesis not supported; ordering distance uncorrelated with mediation (-0.06); local restriction lowers reproducibility (0.43 vs 0.81); correlation most reproducible (0.91) |
 
 ## Reproduce
 
@@ -91,7 +93,7 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 26 experiments, each with a write-up, script, and tests
+├── experiments/                # 27 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
 └── tests/                      # 145 tests, synthetic fixtures only
 ```

@@ -70,6 +70,7 @@ experiments/23_causalbench_response_inverse/response_inverse.md
 experiments/24_causalbench_response_generalization/response_generalization.md
 experiments/25_factor_atlas/factor_atlas.md
 experiments/26_causalbench_essentiality/essentiality.md
+experiments/27_causalbench_local_edges/local_edges.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
