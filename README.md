@@ -96,6 +96,7 @@ stable-grn-inference/
 
 ## Further reading
 
-- [`docs/experiment_summary.md`](docs/experiment_summary.md): detailed per-experiment results and cross-experiment conclusions.
-- [`docs/regime_ladder_report.md`](docs/regime_ladder_report.md): consolidated report on the interventional experiments (17 to 25).
+- [`docs/experiment_summary.md`](docs/experiment_summary.md): detailed per-experiment results.
+- [`docs/project_retrospective.md`](docs/project_retrospective.md): methods, a plain-language statistics reference, and findings by phase.
+- [`docs/notes_and_next_steps.md`](docs/notes_and_next_steps.md): scope, lessons, and planned direction.
 - Each `experiments/NN_*/` directory contains the full numbers and the per-experiment write-up.
