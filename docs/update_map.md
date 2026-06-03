@@ -66,6 +66,8 @@ experiments/19_interventional_grn_benchmark_scouting/interventional_benchmark_sc
 experiments/20_causalbench_rpe1_interventional/causalbench_rpe1_interventional.md
 experiments/21_causalbench_response_geometry/causalbench_response_geometry.md
 experiments/22_causalbench_covariate_response/causalbench_covariate_response.md
+experiments/23_causalbench_response_inverse/response_inverse.md
+experiments/24_causalbench_response_generalization/response_generalization.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md

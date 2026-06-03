@@ -26,6 +26,10 @@ from .interventional import (
     residualize_against_covariates,
     response_sparsity,
     split_half_stability,
+    make_sparse_dag,
+    propagation_forward,
+    deconvolve_response,
+    operator_edges,
 )
 from .dream4 import (
     SIZE10_DATA_REGIMES,
@@ -64,6 +68,10 @@ __all__ = [
     "residualize_against_covariates",
     "response_sparsity",
     "split_half_stability",
+    "make_sparse_dag",
+    "propagation_forward",
+    "deconvolve_response",
+    "operator_edges",
     "build_tf_to_gene_candidate_edges",
     "infer_expression_orientation",
     "label_candidate_edges",

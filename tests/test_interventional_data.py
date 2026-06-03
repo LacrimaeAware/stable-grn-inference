@@ -12,14 +12,18 @@ import pandas as pd
 
 from stable_grn_inference.data import (
     build_candidate_edges_from_perturbations,
+    deconvolve_response,
     direct_effect_filter,
     interventional_effect_matrix,
     interventional_orientation_asymmetry,
     load_causalbench,
     load_interventional_frames,
     load_replogle_raw_h5ad,
+    make_sparse_dag,
     make_synthetic_interventional,
+    operator_edges,
     perturbation_response_matrix,
+    propagation_forward,
     residualize_against_covariates,
     response_low_rank,
     response_sparsity,
@@ -225,6 +229,37 @@ class ResponseGeometryTest(unittest.TestCase):
         D = pd.DataFrame({"A": 2.0 * cov["x"] + 1.0, "B": -0.5 * cov["x"]}, index=cov.index)
         R = residualize_against_covariates(D, cov)
         self.assertLess(float(np.abs(R.to_numpy()).max()), 1e-8)
+
+
+class ResponseInverseTest(unittest.TestCase):
+    def test_sparse_dag_no_self_edges_and_acyclic(self):
+        W = make_sparse_dag(20, 0.15, seed=0)
+        self.assertEqual(W.shape, (20, 20))
+        self.assertTrue(np.allclose(np.diag(W), 0.0))            # no self-edges
+        self.assertTrue(np.allclose(np.tril(W), 0.0))            # upper-triangular -> DAG
+        # acyclic => (I - W) invertible, eigenvalues of W all zero
+        self.assertLess(float(np.max(np.abs(np.linalg.eigvals(W)))), 1e-9)
+
+    def test_forward_then_inverse_recovers_W_exactly(self):
+        # the core sanity check: if the model is TRUE, the noiseless inverse must recover W
+        W = make_sparse_dag(30, 0.12, seed=1)
+        D = propagation_forward(W)
+        W_rec = deconvolve_response(D, method="ridge", lam=0.0)
+        self.assertLess(float(np.abs(W_rec - W).max()), 1e-8)
+
+    def test_forward_inverse_roundtrip_pinv(self):
+        W = make_sparse_dag(25, 0.1, seed=2)
+        D = propagation_forward(W)
+        W_rec = deconvolve_response(D, method="pinv", rcond=1e-12)
+        self.assertLess(float(np.abs(W_rec - W).max()), 1e-6)
+
+    def test_operator_edges_excludes_self(self):
+        W = np.array([[0.0, 0.5, 0.0], [0.0, 0.0, -0.3], [0.0, 0.0, 0.0]])
+        edges = operator_edges(W, ["A", "B", "C"])
+        self.assertEqual(len(edges), 6)                          # 3*2 directed, no self
+        self.assertNotIn(True, [s == t for s, t in zip(edges["source"], edges["target"])])
+        row = edges[(edges["source"] == "A") & (edges["target"] == "B")].iloc[0]
+        self.assertAlmostEqual(row["score"], 0.5)
 
 
 if __name__ == "__main__":
