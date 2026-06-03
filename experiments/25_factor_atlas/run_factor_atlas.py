@@ -21,13 +21,12 @@ This experiment does two things, in order:
     2. Does removing it reveal a cleaner "true function" core (like the "true 9")?
        -> test whether the residual is MORE split-half reproducible than the raw response.
 
-PRE-REGISTERED PREDICTIONS:
-  - Part A: core_score(core) >> nuisance/shortcut; factored classifier beats raw on flipped
-    combos. (Proven in unit tests -- here we just show the numbers. Positive control.)
-  - Part B: the cell-cycle program IS nuisance-like (cuts across modules) -- but removing it
-    does NOT yield a more reproducible core (exp22 found removing it HURT stability). So the
-    decomposition only PARTIALLY transfers to genes: the shared nuisance exists, but unlike
-    redness-vs-9 it is entangled with real function. ~70% this is the outcome.
+Expected behavior:
+  - Part A (positive control): core_score(core) >> nuisance/shortcut; the factored
+    classifier beats the raw one on flipped combinations.
+  - Part B: removing the cell-cycle program is not expected to yield a more reproducible
+    core (experiment 22 found removing it reduced stability), so the decomposition only
+    partially transfers to genes: the shared program is entangled with real function.
 
 No new data download. --quick caps the gene set.
 """
@@ -226,7 +225,7 @@ def main():
 
     lines.append("## Bottom line\n")
     lines.append("- Your sub-feature / counterfactual idea is REAL and WORKS on controlled data "
-                 "(Part A is a clean positive control, not hype).")
+                 "(Part A is a synthetic positive control).")
     lines.append("- For genes specifically, it transfers only partially: the shared nuisance axis "
                  "is there and cuts across, but it is not orthogonal to function the way a style "
                  "factor is to a digit -- which is a precise, honest map of where the idea applies.\n")

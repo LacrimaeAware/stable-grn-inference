@@ -21,12 +21,11 @@ Method (leave-one-perturbation-out, two independent cell halves A and B):
 Scored by cosine(pred, target). Reported BOTH raw and RESIDUAL (mean-program removed) so
 we can see whether gene-specific structure (not just the cell cycle) transfers.
 
-PRE-REGISTERED PREDICTION:
-  - lowrank denoising beats self_only on RAW cosine: likely (~70%) - the shared subspace
-    captures the reproducible part.
-  - on the RESIDUAL (gene-specific, mean removed): genuinely unsure (~50/50). THIS is the
-    crux. If yes -> a real positive direction. If no -> the only transferable thing is the
-    cell cycle, and that is an honest, clarifying negative.
+Expected behavior:
+  - low-rank denoising was expected to beat self_only on raw cosine.
+  - the residual (gene-specific, mean removed) was the uncertain case: if low-rank wins,
+    there is transferable gene-specific structure; if not, the only transferable component
+    is the cell cycle.
 
 No new data, no wavelets, no RL, no neural nets. --quick samples fewer held-out genes.
 """
@@ -147,8 +146,8 @@ def main() -> None:
     best_res = lr.loc[lr["residual_cosine"].idxmax()]
 
     lines = ["# Experiment 24 - Transferable structure in perturbation response\n"]
-    lines.append("_Pre-registered: low-rank denoising likely beats self_only on RAW cosine; "
-                 "the crux is the RESIDUAL (gene-specific) - genuinely 50/50._\n")
+    lines.append("_Expected: low-rank denoising beats self_only on raw cosine; the residual "
+                 "(gene-specific) is the uncertain case._\n")
     lines.append(f"- response block {D1.shape[0]} x {D1.shape[1]}; held-out perturbations evaluated: {int(table['n_eval'].iloc[0])}\n")
     lines.append("| method | raw cosine | residual cosine (mean-program removed) |")
     lines.append("| --- | --- | --- |")
@@ -157,7 +156,7 @@ def main() -> None:
 
     raw_gain = best_raw["raw_cosine"] - self_raw
     res_gain = best_res["residual_cosine"] - self_res
-    lines.append("\n## Verdict (no hype)\n")
+    lines.append("\n## Verdict\n")
     lines.append(f"- self-only baseline: raw {fmt(self_raw)}, residual {fmt(self_res)}")
     lines.append(f"- mean-program (cell-cycle) baseline: raw {fmt(mean_raw)} (high = response is cell-cycle-dominated)")
     lines.append(f"- best low-rank denoiser RAW: {best_raw['method']} {fmt(best_raw['raw_cosine'])} "

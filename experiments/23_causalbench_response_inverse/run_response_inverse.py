@@ -6,14 +6,12 @@ In a simplified linear-propagation model, a sparse DIRECT operator W generates i
 Question: can any simple inverse/deconvolution turn the dense total response D into a
 sparser, more stable, more direct-effect-like operator W?
 
-PRE-REGISTERED PREDICTION (so a negative is a confirmed prediction, not a let-down):
-  - Synthetic (model is TRUE): noiseless inverse recovers W exactly (proven in tests);
-    recovery should degrade gracefully as noise rises.
-  - Real RPE1: I expect the raw inverse to NOT beat the raw |D| baseline - matrix
-    inversion amplifies noise, so it should be LESS split-half stable and should NOT
-    reconstruct held-out response better than raw D. ~65% this lands "mixed" or "failed".
-    The one place I'm genuinely unsure: a sparse (Lasso) deconvolution might be more
-    stable than the dense inverse. That's the live sub-question.
+Expected behavior:
+  - Synthetic (model true): the noiseless inverse recovers W exactly and degrades
+    gradually with noise.
+  - Real RPE1: matrix inversion amplifies noise, so the inverse is expected to be less
+    split-half stable than the raw |D| baseline and not to reconstruct held-out response
+    better. The open question is whether a sparse (Lasso) deconvolution is more stable.
 
 Bounded, exploratory. No new data, no wavelets, no RL, no neural nets. --quick caps size.
 """
@@ -190,9 +188,8 @@ def main() -> None:
 
     TABLES_DIR.mkdir(parents=True, exist_ok=True)
     lines = ["# Experiment 23 - Response inverse / deconvolution\n"]
-    lines.append("_Pre-registered prediction: synthetic recovers W when noiseless; on real RPE1 "
-                 "the raw inverse likely does NOT beat raw |D| (inversion amplifies noise); a sparse "
-                 "deconvolution might be more stable. ~65% mixed/failed._\n")
+    lines.append("_Expected: the inverse recovers W on noiseless synthetic data; on real RPE1 "
+                 "the inverse is not expected to beat raw |D| (inversion amplifies noise)._\n")
 
     # ---- PART 0: synthetic ----
     syn, W_true, D_clean = synthetic_sanity(n_syn, 0.12, [0.0, 0.05, 0.1, 0.25, 0.5], args.random_seed)
@@ -292,7 +289,7 @@ def main() -> None:
               and r["edge_rank_corr"] >= raw["edge_rank_corr"]
               and next(x for x in recon_rows if x["operator"] == r["operator"])["rank_corr"] >= raw_recon_rank]
     sparser = [r for r in stab_rows if r["operator"] != "raw_|D|" and r["participation_ratio"] < raw["participation_ratio"]]
-    lines.append("\n## Verdict (no hype)\n")
+    lines.append("\n## Verdict\n")
     lines.append(f"- synthetic noiseless recovery: {'PASS' if syn_ok else 'FAIL'}")
     lines.append(f"- raw |D| direction reproducibility (reference): {fmt(raw_dir)}")
     lines.append(f"- inverse operators that are SPARSER (lower participation ratio) than raw D: "
