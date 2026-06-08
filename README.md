@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 28 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 33 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -55,6 +55,12 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 - exp 26. Perturbation essentiality and cascade position. Ranking genes by knockout-response magnitude, breadth, and cascade engagement gives a reproducible essentiality axis (split-half 0.97) that recovers known essential machinery (ribosome, spliceosome, proteasome, nuclear pore). A net-effect ordering separates upstream information-processing genes from downstream cell-cycle and structural effectors, also reproducible (0.99).
 - exp 27. Cascade-adjacent edges. Tests whether genes adjacent in the cascade ordering give more direct edges. They do not: ordering distance is uncorrelated with how chain-explained a pair is (-0.06), and restricting to ordering-local pairs lowers edge reproducibility (0.43 vs 0.81 for the raw effect). The convergent cascade provides a strong indirect path for nearly every pair regardless of ordering position. Observational correlation is the most reproducible edge ranking (0.91).
 
+### Phase 4: separability and dynamical recovery (diagnostic, with a benchmarked negative)
+- exp 28. Separability phase diagram (synthetic, ground truth). Recovery of specific structure from under a dominant shared mode has two axes: the dominant-mode fraction (fixable by deflation) and a specific-SNR floor (not fixable). RPE1 sits below the floor, which reframes the exp 22 to 24 negatives as one map.
+- exp 29. Whitened interventional asymmetry. Tests whether reproducible pairwise asymmetry survives beyond the per-gene axes and whether whitening the dominant mode helps. On the synthetic control, whitening does not help; not yet run on real RPE1.
+- exp 30 to 32. Dynamical recovery with a time axis (synthetic VAR, DREAM4, BoolODE single-cell, real RENGE time-resolved Perturb-seq, GEO GSE213069). A dynamical operator orients edges a symmetric static statistic cannot, and on real RENGE data the knockout response builds over four days while its directional ordering stays reproducible (cross-day Spearman 0.75).
+- exp 33. Benchmark against established methods. Graded against lagged GENIE3, lagged LASSO, and lagged correlation on the same pairs and truth, the dynamical operator does not win: it ranks last on DREAM4 (directed AUPR 0.37 vs lagged GENIE3 0.54) and mid-pack on BoolODE (0.41 vs lagged LASSO 0.45). The operator is not the method of choice. The durable contribution of this phase is the exp 28 diagnostic and the regime-ladder framing, not a new method.
+
 ## Experiment log
 
 | #     | experiment | method | result |
@@ -76,13 +82,16 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | essentiality reproducible (0.97), recovers known machinery; cascade position reproducible (0.99), upstream vs downstream separable |
 | 27    | cascade-adjacent edges | ordering distance vs mediation; local edge reproducibility | hypothesis not supported; ordering distance uncorrelated with mediation (-0.06); local restriction lowers reproducibility (0.43 vs 0.81); correlation most reproducible (0.91) |
 | 28    | separability phase diagram | synthetic dominant-mode + specific structure; sweep rho/SNR (ground truth) | two failure axes: dominant-mode fraction (rho) is fixable by deflation, specific-SNR is a hard floor; RPE1 sits at high rho / low SNR, the unrecoverable corner |
+| 29    | whitened asymmetry | residual-asymmetry reproducibility, whitening sweep | whitening does not help (best alpha 0); synthetic control only, not yet real RPE1 |
+| 30-32 | dynamical recovery | DMD operator vs static; DREAM4, BoolODE, real RENGE timecourse | operator orients where static cannot; RENGE response builds over days, ordering reproducible 0.75 |
+| 33    | dynamical baseline benchmark | DMD vs lagged GENIE3/LASSO/correlation, same pairs and truth | no benchmarked win: last on DREAM4 (0.37 vs 0.54), 2nd on BoolODE (0.41 vs 0.45) |
 
 ## Reproduce
 
 ```bash
 # Python 3.13, dependencies in requirements.txt
 $env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 158 tests
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 187 tests
 .\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick   # any experiment
 .\.venv\Scripts\python.exe -B docs/figures/make_figures.py             # regenerate figures
 ```
@@ -94,9 +103,9 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 28 experiments, each with a write-up, script, and tests
+├── experiments/                # 33 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
-└── tests/                      # 158 tests, synthetic fixtures only
+└── tests/                      # 187 tests, synthetic fixtures only
 ```
 
 ## Further reading

@@ -252,46 +252,66 @@ domain: on Perturb-seq, deep and nonlinear models do not beat simple linear
 baselines (CausalBench winners were standard ML; five foundation models plus
 GEARS/CPA failed to beat additive baselines; see section 8).
 
-## 5a. Status (built) and the first positive result
+## 5a. Status (built) and an honest evaluation of the results
 
-Both directions are now implemented with tests (179 in the suite).
+Both directions are implemented with tests (187 in the suite). An adversarial methodology audit
+of experiments 28-32 corrected the earlier framing; this section is the corrected reading.
 
 - Direction A is experiment 29 (`experiments/29_whitened_asymmetry/`,
-  `src/stable_grn_inference/analysis/asymmetry.py`). Gate 0 runs offline on a synthetic
-  positive control (it correctly passes when the asymmetry is genuine) and is ready to run on
-  the real RPE1 h5ad. Expected on RPE1: a clean negative, per the exp 28 SNR floor.
+  `src/stable_grn_inference/analysis/asymmetry.py`). Gate 0 passes on a SYNTHETIC positive
+  control only; it has not been run on real RPE1, where a negative is predicted per the exp 28
+  SNR floor. The whitening sweep shows whitening does not help (best alpha 0.00), and CausalGRN's
+  pseudo-gene-node treatment (section 8), the established competitor on this exact data, is not
+  yet raced. So exp 29's only current finding is that raw asymmetry is reproducible on synthetic
+  data.
 
-- Direction B is experiment 30 (`experiments/30_dynamical_recovery/`,
-  `src/stable_grn_inference/dynamics/temporal.py`) and produced the project's first
-  ground-truthed positive. On a synthetic system with a known directed operator and a tunable
-  dominant shared mode, a dynamic-mode operator (uses time order) recovers directed structure
-  at 0.705 normalized recovery versus 0.117 for the static correlation, and stays above chance
-  (0.40) at the strongest dominant mode where the static method is at zero. On DREAM4 Size10
-  time-series (realistic dynamics, known network) the dynamic operator beats static
-  correlation at directed recovery (AUPR 0.37 vs 0.31, chance 0.16). The static symmetric
-  statistic cannot orient an edge; the time axis is what makes direction recoverable. This is
-  the regime ladder's top rung turned into a controlled, gradeable result, and it is the
-  concrete reason Direction B is the live path to a real positive.
+- Direction B (experiments 30-32) is NOT a benchmarked positive. The dynamic-mode operator is
+  textbook least-squares VAR(1) / DMD; its field equivalents are Granger causality and dynGENIE3.
+  Every real-data comparison was against `static correlation`, which is symmetric and cannot
+  orient an edge by construction, so beating it at a directed task is guaranteed and uninformative
+  about method quality; it only re-demonstrates the regime ladder (time order enables orientation).
+  - On synthetic VAR(1), the operator reaches 0.705 normalized directed recovery vs 0.117 for the
+    symmetric static baseline: a controlled demonstration that a time-using operator orients edges
+    a symmetric snapshot cannot, not an independent positive.
+  - On DREAM4 Size10 time-series the operator reaches directed AUPR 0.37, which RANKS LAST of the
+    methods this project already ran on the identical networks and pairs in exp 7: lagged GENIE3
+    RF 0.53, GENIE3 ET 0.53, LASSO 0.51 / 0.49, lagged correlation 0.46. It beats only the static
+    (unorientable) baseline and underperforms every established lagged method.
 
-- Direction B extended to real-ish and real data. Experiment 31
-  (`experiments/31_boolode_dynamical/`) runs the operator on BoolODE single-cell data (exact
-  truth, BEELINE cell-count sweep): the dynamic operator beats static correlation at directed
-  recovery (0.261 vs 0.210 over 240 datasets), strongly on orderable topologies (linear 0.51 vs
-  0.30) and, as expected, failing on cycles where a single pseudotime ordering is ill-defined.
-  Experiment 32 (`experiments/32_renge_timecourse/`, `src/stable_grn_inference/data/renge.py`)
-  loads the real RENGE time-resolved Perturb-seq (GEO GSE213069, four days, 23 knocked-out TFs,
-  about 360 MB, now local): the knockout response grows over real time (||D|| 2.79 to 3.79 from
-  day 2 to day 5) and the directional net_out ordering is reproducible across days (mean Spearman
-  0.75) and stabilizes (0.92 by day 4 to 5). Graded against the STRING functional network (a
-  downloadable external proxy), the interventional response recovers known links above chance
-  (0.31 to 0.39 vs 0.23), strengthening over the time course and beating the observational
-  baseline on average (0.366 vs 0.323). Directed grading against a TF-target or ChIP network is
-  the further step (STRING is undirected; the exact RENGE ChIP set is in the paper supplement,
-  not the GEO download).
+  - On BoolODE single-cell (exp 31) the operator beats the static baseline on 4 of 6 topologies
+    (orderable trajectories); it LOSES on cycles (0.028 vs 0.161) and trifurcating branches
+    (0.178 vs 0.233); the overall margin is marginal (+0.05 normalized) and flat in cell count,
+    contradicting the SNR/sample-size rationale for the sweep. No orientable established method
+    (lagged GENIE3, BEELINE leaderboard) was compared.
+  - On real RENGE Perturb-seq (exp 32) the time-resolved STRUCTURE is real and reproducible
+    (response grows ||D|| 2.79 to 3.79 over days; net_out ordering reproducible 0.75 and
+    stabilizing to 0.92). But the graded recovery is against STRING, which is UNDIRECTED, so it
+    is SKELETON recovery, not directed recovery; the win over a hand-built observational
+    correlation control is marginal (0.366 vs 0.323) and reverses on day 4 (0.407). No established
+    GRN method (GENIE3/GRNBoost2) and no directed truth were used.
 
-This sharpens the section 0 paper framing: the static recoverability boundary (exp 28) plus a
-dynamical operator that crosses it where static methods cannot (exp 30). The remaining step is
-a real time-resolved dataset above the SNR floor.
+The single durable, possibly-novel contribution is exp 28's separability phase diagram (the
+rho-vs-SNR decomposition with an SNR floor, RPE1 placed on it; note the reported grid is the
+quick-mode run, 50 genes / 2 seeds, so the SNR-floor threshold is provisional until the full grid
+runs) and the regime-ladder diagnostic framing. These are legitimate negative-results /
+methods-note contributions and do not depend on a method baseline. None of exps 30-32 currently
+establishes a novel positive, because none beats an established method, and on DREAM4 the operator
+already loses to lagged GENIE3.
+
+The corrective is the benchmarked comparison (experiment 33): put the operator in the same table as
+lagged GENIE3 and lagged LASSO on the same data, and grade RENGE against a DIRECTED truth (TRRUST /
+DoRothEA / the RENGE ChIP set). Decision rule: if the operator matches or beats lagged GENIE3,
+Direction B has a real modest positive; if it underperforms (as DREAM4 indicates), the honest
+contribution is "time order enables orientation, and simple lagged feature-importance is the method
+of choice", a reproduction/negative stated as such.
+
+Experiment 33 ran this benchmark (directed AUPR, same pairs and truth). DREAM4: the operator ranks
+LAST of four orientable methods (DMD 0.37 vs lagged GENIE3 0.54, LASSO 0.51, correlation 0.46).
+BoolODE single-cell: the operator is mid-pack, 2nd of four (DMD 0.41; lagged LASSO 0.45 best, lagged
+GENIE3 0.40, correlation 0.40). There is no benchmarked win on either dataset; the established lagged
+methods match or beat the operator. The dynamical line therefore has no novel positive, and its
+durable contribution is the exp 28 separability diagnostic and the regime-ladder framing. The
+operator's earlier "positives" were artifacts of the symmetric static strawman baseline.
 
 ## 5b. Direction B datasets (verified scout, ranked)
 

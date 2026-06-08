@@ -1,5 +1,12 @@
 # Experiment 32: time-resolved knockout response on RENGE Perturb-seq
 
+> Correction (methodology audit). The time-resolved STRUCTURE (response growth, net_out ordering
+> stability) is real and reproducible. But the graded recovery is against STRING, which is
+> UNDIRECTED, so this is SKELETON recovery, not the directed recovery the Direction B thesis is
+> about; there is no directed validation here. The win over a hand-built observational correlation
+> control is marginal (0.366 vs 0.323) and reverses on day 4 (observational 0.407). No established
+> GRN method (GENIE3/GRNBoost2) was compared. exp 33 adds directed grading via TRRUST.
+
 Direction B on real time-resolved data. RENGE (GEO GSE213069) is real single-cell CRISPR
 knockout in human iPSCs across four daily timepoints (days 2 to 5), 23 knocked-out
 transcription factors, non-targeting controls. Unlike the static RPE1 snapshot, it has a real

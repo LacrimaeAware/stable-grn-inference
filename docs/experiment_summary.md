@@ -36,6 +36,22 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | Modern benchmark scouting | `experiments/15_modern_grn_benchmark_adapter/modern_grn_benchmark_adapter.md` | Which modern GRN benchmark should validate the pipeline beyond DREAM4/GNW? (chose BEELINE) |
 | BEELINE adapter smoke | `experiments/16_beeline_adapter_smoke/run_beeline_adapter_smoke.py` | Can the pipeline ingest BEELINE-format single-cell datasets and run static methods end-to-end? |
 | Stability + orientation diagnostics | `experiments/17_dream4_stability_orientation_diagnostics/run_stability_orientation_diagnostics.py` | Is the error skeleton or orientation? Is alpha theory-predictable? Is fusion complementarity or variance reduction? Does formal stability selection support the stability-selection thesis? |
+| BEELINE diagnostics | `experiments/18_beeline_diagnostics/` | Is orientation accuracy regime-dependent on real static single-cell data (near 0.50)? |
+| Interventional benchmark scouting | `experiments/19_interventional_grn_benchmark_scouting/` | Which interventional benchmark settles direction? (chose CausalBench / Replogle RPE1) |
+| RPE1 interventional diagnostics | `experiments/20_causalbench_rpe1_interventional/` | On real CRISPR perturbation data, what fraction of pairs is direction-decidable, and does observational scoring transfer? |
+| Response geometry | `experiments/21_causalbench_response_geometry/` | How low-rank is the RPE1 response, and is the interventional asymmetry reproducible across cell halves? |
+| Covariate response | `experiments/22_causalbench_covariate_response/` | Does removing the dominant program (subtraction / covariate residualization) isolate a cleaner gene-specific signal? |
+| Response inverse | `experiments/23_causalbench_response_inverse/` | Does linear deconvolution W = I - (I+D)^-1 recover direct edges on RPE1 as it does on synthetic data? |
+| Response generalization | `experiments/24_causalbench_response_generalization/` | Does shared low-rank structure predict a held-out perturbation better than its own noisy half? |
+| Factor atlas | `experiments/25_factor_atlas/` | Does counterfactual factor removal separate cell-cycle from gene-specific effects (as it does on planted synthetic truth)? |
+| Essentiality and cascade position | `experiments/26_causalbench_essentiality/` | Is a data-derived essentiality axis and an upstream/downstream net_out ordering reproducible and biologically sensible? |
+| Cascade-adjacent edges | `experiments/27_causalbench_local_edges/` | Do genes adjacent in the cascade ordering yield more direct (less chain-mediated) edges? |
+| Separability phase diagram | `experiments/28_separability_phase_diagram/` | When is specific structure recoverable from under a dominant shared mode? (maps the rho vs SNR boundary, places RPE1) |
+| Whitened asymmetry gate | `experiments/29_whitened_asymmetry/` | Is there reproducible pairwise asymmetry beyond the per-gene net_out and magnitude axes, and does whitening the dominant mode help? |
+| Dynamical recovery | `experiments/30_dynamical_recovery/` | Does a time axis let a dynamic operator recover directed structure that a static, symmetric statistic cannot? |
+| BoolODE dynamical | `experiments/31_boolode_dynamical/` | Does that hold on single-cell pseudotime data with exact truth, across a cell-count (SNR) sweep? |
+| RENGE timecourse | `experiments/32_renge_timecourse/` | On real time-resolved Perturb-seq, does the knockout response build over days, and does it recover an external network (STRING) above chance and over an observational baseline? |
+| Dynamical baseline benchmark | `experiments/33_dynamical_baseline_benchmark/` | Does the dynamical operator match or beat the established lagged methods (lagged GENIE3, LASSO, correlation) at directed recovery on the same pairs and truth? |
 
 Generated outputs are saved under ignored `results/tables/`.
 

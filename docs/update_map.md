@@ -14,6 +14,7 @@ Use this as a lightweight checklist for keeping project notes current. Do not up
 | `docs/notes_and_next_steps.md` | Scope, lessons, or planned direction change | Scope, lessons, and planned direction |
 | `docs/next_direction.md` | The synthesized next-direction plan or its weighting changes | Consolidated synthesis of goals, prior findings, and weighted directions after exp 28 |
 | `docs/verification_audit.md` | A full correctness/design audit of the experiments is run | Record of an end-to-end verification pass: method, conclusion, corrections, residual items |
+| `docs/literature_review.md` | New external research is gathered | Referenceable record of the field literature and datasets, with citations and verification status |
 | `experiments/*/*.md` | An experiment is added, rerun with important results, or limitations change | Local guide for each experiment; use descriptive names, not `README.md` |
 | `docs/update_map.md` | Documentation conventions change | Keeps this checklist useful |
 
@@ -47,6 +48,7 @@ docs/project_plan.md
 docs/data_inventory.md
 docs/experiment_summary.md
 docs/next_direction.md
+docs/literature_review.md
 docs/update_map.md
 experiments/01_dream4_size10_baseline/baseline_comparison.md
 experiments/02_dream4_size10_stability/stability_audit.md
@@ -79,8 +81,11 @@ experiments/29_whitened_asymmetry/whitened_asymmetry.md
 experiments/30_dynamical_recovery/dynamical_recovery.md
 experiments/31_boolode_dynamical/boolode_dynamical.md
 experiments/32_renge_timecourse/renge_timecourse.md
+experiments/33_dynamical_baseline_benchmark/dynamical_baseline_benchmark.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 data/raw/renge/                    # ignored; RENGE GSE213069 time-resolved Perturb-seq (not committed)
+data/raw/trrust/                   # ignored; TRRUST directed TF-target network (not committed)
+data/raw/string/                   # ignored; STRING functional network for grading (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
 private_docs/dev_journal/2026-06-02.md

@@ -1,5 +1,11 @@
 # Experiment 31: dynamical recovery on BoolODE single-cell time-series
 
+> Correction (methodology audit). The operator beats only the SYMMETRIC static correlation, which
+> cannot orient by construction. It LOSES on 2 of 6 topologies (cycle 0.028 vs 0.161; trifurcating
+> 0.178 vs 0.233), the overall margin is marginal (+0.05 normalized) and flat in cell count
+> (contradicting the SNR/sample-size rationale for the sweep), and no orientable established method
+> (lagged GENIE3, the BEELINE leaderboard) was compared. Not a benchmarked positive; see exp 33.
+
 Direction B on real-ish single-cell data. Experiment 30 showed a dynamic operator recovers
 directed structure a static snapshot cannot, on synthetic dynamics and DREAM4. This runs the
 same test on BoolODE single-cell expression (BEELINE), which has a pseudotime axis, an exact
