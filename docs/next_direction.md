@@ -282,9 +282,12 @@ Both directions are now implemented with tests (179 in the suite).
   loads the real RENGE time-resolved Perturb-seq (GEO GSE213069, four days, 23 knocked-out TFs,
   about 360 MB, now local): the knockout response grows over real time (||D|| 2.79 to 3.79 from
   day 2 to day 5) and the directional net_out ordering is reproducible across days (mean Spearman
-  0.75) and stabilizes (0.92 by day 4 to 5). Directed grading against the RENGE ChIP-seq proxy
-  network is the one remaining step (that network is not in the GEO download; it is in the RENGE
-  repository).
+  0.75) and stabilizes (0.92 by day 4 to 5). Graded against the STRING functional network (a
+  downloadable external proxy), the interventional response recovers known links above chance
+  (0.31 to 0.39 vs 0.23), strengthening over the time course and beating the observational
+  baseline on average (0.366 vs 0.323). Directed grading against a TF-target or ChIP network is
+  the further step (STRING is undirected; the exact RENGE ChIP set is in the paper supplement,
+  not the GEO download).
 
 This sharpens the section 0 paper framing: the static recoverability boundary (exp 28) plus a
 dynamical operator that crosses it where static methods cannot (exp 30). The remaining step is

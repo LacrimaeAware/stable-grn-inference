@@ -31,6 +31,10 @@ from .interventional import (
     deconvolve_response,
     operator_edges,
 )
+from .anchors import (
+    load_string_network,
+    skeleton_truth_matrix,
+)
 from .renge import (
     RENGE_CONTROL_TARGETS,
     RENGE_DAYS,
@@ -80,6 +84,8 @@ __all__ = [
     "propagation_forward",
     "deconvolve_response",
     "operator_edges",
+    "load_string_network",
+    "skeleton_truth_matrix",
     "RENGE_CONTROL_TARGETS",
     "RENGE_DAYS",
     "assign_guides",

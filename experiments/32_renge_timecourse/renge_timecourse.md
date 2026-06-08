@@ -34,13 +34,33 @@ Tested offline in `tests/test_renge.py`. Download: the four daily tarballs from 
 - Within-day reproducibility (median split-half cosine) rises from 0.45 (day 2) to 0.66
   (day 5): the response becomes more reproducible as it strengthens.
 
+## Graded recovery vs STRING (external proxy)
+
+The per-day interventional response is graded against the STRING functional network (58 edges
+among the 23 TFs at combined score >= 0.4; skeleton chance 0.229). STRING is undirected, so this
+grades the interaction skeleton.
+
+| day | interventional AUPR | observational AUPR | chance |
+| --- | --- | --- | --- |
+| day2 | 0.310 | 0.283 | 0.229 |
+| day3 | 0.380 | 0.268 | 0.229 |
+| day4 | 0.390 | 0.407 | 0.229 |
+| day5 | 0.385 | 0.333 | 0.229 |
+
+The interventional knockout response recovers STRING functional links above chance (0.31 to 0.39
+vs 0.23), recovery strengthens over the time course (0.310 at day 2 to 0.385 at day 5), and it
+beats the observational control-cell correlation baseline on average (mean 0.366 vs 0.323) and on
+three of four days. The win over observational is real but modest; the day-4 observational value
+(0.407) is a single-day spike.
+
 ## Status and next step
 
-This establishes the unsupervised time-resolved structure (response growth, ordering stability)
-on real time-resolved Perturb-seq. The completing step is directed-edge grading against the
-RENGE ChIP-seq proxy network (19 genes, binding threshold 300), which is not in the GEO download
-and lives in the RENGE repository; fetching it turns this into a graded directed-recovery test
-comparable to exp 30 and exp 31 on real interventional time-series data.
+The time-resolved structure (growth, ordering stability) and skeleton recovery against STRING are
+graded here. The further step is DIRECTED grading against a TF-target or ChIP network (STRING is
+undirected): the exact RENGE ChIP set (19 genes, threshold 300) is in the paper supplement, not
+the GEO download; a downloadable directed curated TF-target database (TRRUST, DoRothEA) is the
+alternative. That would test directed recovery on real interventional time-series, comparable to
+exp 30 and exp 31.
 
 ## Outputs
 
