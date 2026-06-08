@@ -9,6 +9,12 @@ from .asymmetry import (
     response_asymmetry,
     response_magnitude,
 )
+from .nongaussian import (
+    edge_detectability,
+    nongaussian_directed_edges,
+    nongaussianity,
+    pairwise_orientation,
+)
 from .ordering import (
     cell_similarity,
     correlation_power,
@@ -30,6 +36,10 @@ from .factor_atlas import (
 
 __all__ = [
     "FactorAtlasData",
+    "edge_detectability",
+    "nongaussian_directed_edges",
+    "nongaussianity",
+    "pairwise_orientation",
     "cell_similarity",
     "correlation_power",
     "diffusion_order",

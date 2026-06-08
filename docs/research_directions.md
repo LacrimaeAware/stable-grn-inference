@@ -54,3 +54,47 @@ Established context:
 Each is testable against exact truth on BoolODE/DREAM4 and against TRRUST/STRING on RENGE, compared
 to the standing baselines. After the literature pass, this list is reconciled with what the field has
 tried (incorporate, keep-distinct, or compare) and turned into the next experiment set.
+
+## Reconciliation with the literature (after the research pass)
+
+Headline from the research: no verified published result shows any advanced method (Koopman/EDMD,
+CCM/empirical dynamic modeling, non-Gaussian/LiNGAM, 2023-2025 deep/optimal-transport) beating simple
+baselines (GENIE3, correlation) on REAL directed-GRN recovery. Every confirmed advantage was on
+synthetic or physics/climate systems. The burden-of-proof gap is open. Per-edge detectability limits
+were posed but unanswered (no surviving claim). Sources: DTIC AD1170384 / Nat Commun 2023
+(PMC10229592); Kausal (arXiv:2505.14828 / Nat Commun Physics 2025); EggFinder (Sogawa-Shimizu 2011).
+
+- Direction 1 (LiNGAM): KEEP, top priority. Confirmed as the principled way to get direction from
+  static data via higher moments, and it works at p>>n. Caveats from the research: it assumes
+  acyclicity and non-Gaussianity (the EggFinder variant recovers only root variables, not full
+  edges); expect it to work on acyclic nets and degrade on cyclic ones and under Gaussian technical
+  noise. Test the full pairwise/DirectLiNGAM version on small gene sets.
+- Direction 2 (detectability map): KEEP, elevated. The research explicitly leaves per-edge
+  detectability / information-theoretic limits unanswered, so this is genuinely open territory.
+- Direction 4 (Koopman with observables): DEMOTE. On real bulk RNA-seq, plain linear DMD already
+  fits well (R^2=0.93) so nonlinear lifting is not needed; the deep-Koopman advantage (Kausal) is
+  physics/climate only with no biological demonstration. Consistent with exp 33 (DMD lost to GENIE3).
+- Takens / CCM (background to direction 5): DEMOTE as a causal tool. Documented failure mode of
+  misreading generalized synchrony as causation and inferring all-to-all networks on oscillatory
+  data, exactly the cyclic case we care about.
+- Directions 3 (two-stage), 5 (cycle 2D geometry), 6 (diversity-consensus): KEEP, queued; distinct
+  and not addressed by the literature.
+
+Next experiment: exp 35 combines directions 1 and 2 (non-Gaussian orientation + detectability map),
+graded against truth on BoolODE/DREAM4 and against the standing baselines.
+
+## Result of exp 35 (directions 1 and 2)
+
+- Direction 1 (LiNGAM / non-Gaussian orientation): negative on real data. The orientation is provably
+  correct (it orients a planted non-Gaussian Laplace chain from static data, unit-tested), but on
+  BoolODE it does not beat symmetric correlation (directed AUPR 0.29 vs 0.36), is below GENIE3, and is
+  worse on the acyclic networks where it should excel (0.23 vs 0.40). This is not a sample-size issue
+  (unchanged at 5000 cells); BoolODE's noise is not the LiNGAM kind, so the measure mis-orients. The
+  higher-moments idea is sound in theory and fails on this data.
+- Direction 2 (detectability map): works as a diagnostic. True edges sit far from the permutation null
+  (z=10.7) and 88% clear z>2, but transitive false edges also clear it (z=6.2), so detectability
+  separates signal from pure noise but not direct edges from indirect. It quantifies the per-edge SNR
+  floor honestly.
+
+Queued and not yet run: direction 3 (two-stage focus-then-refine), 5 (cycle 2D geometry), 6
+(diversity-consensus). Each must clear the standing baselines (correlation, GENIE3) on truth.

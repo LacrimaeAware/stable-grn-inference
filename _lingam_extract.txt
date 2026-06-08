@@ -1,0 +1,1419 @@
+==== PAGE 1 ====
+Journal of Machine Learning Research 12 (2011) 1225-1248 Submitted 1/11; Published 4/11
+DirectLiNGAM: A Direct Method for Learning a Linear
+Non-Gaussian Structural Equation Model
+Shohei Shimizu SSHIMIZU @AR.SANKEN .OSAKA -U.AC.JP
+Takanori Inazumi INAZUMI @AR.SANKEN .OSAKA -U.AC.JP
+Yasuhiro Sogawa SOGAWA @AR.SANKEN .OSAKA -U.AC.JP
+The Institute of Scientiﬁc and Industrial Research
+Osaka University
+Mihogaoka 8-1, Ibaraki, Osaka 567-0047, Japan
+Aapo Hyv¨arinen AAPO .HYVARINEN @HELSINKI .FI
+Department of Computer Science and Department of Mathematics and Statistics
+University of Helsinki
+Helsinki Institute for Information Technology
+FIN-00014, Finland
+Yoshinobu Kawahara KAWAHARA @AR.SANKEN .OSAKA -U.AC.JP
+Takashi Washio WASHIO @AR.SANKEN .OSAKA -U.AC.JP
+The Institute of Scientiﬁc and Industrial Research
+Osaka University
+Mihogaoka 8-1, Ibaraki, Osaka 567-0047, Japan
+Patrik O. Hoyer PATRIK .HOYER @HELSINKI .FI
+Helsinki Institute for Information Technology
+University of Helsinki
+FIN-00014, Finland
+Kenneth Bollen BOLLEN @UNC .EDU
+Department of Sociology, CB 3210 Hamilton Hall
+University of North Carolina
+Chapel Hill, NC 27599-3210
+U.S.A.
+Abstract
+Structural equation models and Bayesian networks have been widely used to analyze causal rela-
+tions between continuous variables. In such frameworks, linear acyclic models are typically used to
+model the data-generating process of variables. Recently,it was shown that use of non-Gaussianity
+identiﬁes the full structure of a linear acyclic model, that is, a causal ordering of variables and their
+connection strengths, without using any prior knowledge on the network structure, which is not
+the case with conventional methods. However, existing esti mation methods are based on iterative
+search algorithms and may not converge to a correct solutionin a ﬁnite number of steps. In this pa-
+per, we propose a new direct method to estimate a causal order ing and connection strengths based
+on non-Gaussianity. In contrast to the previous methods, ou r algorithm requires no algorithmic
+parameters and is guaranteed to converge to the right solution within a small ﬁxed number of steps
+if the data strictly follows the model, that is, if all the mod el assumptions are met and the sample
+size is inﬁnite.
+Keywords: structural equation models, Bayesian networks, independe nt component analysis,
+non-Gaussianity, causal discovery
+c⃝ 2011 Shohei Shimizu, Takanori Inazumi, Yasuhiro Sogawa, AapoHyv¨arinen, Yoshinobu Kawahara, Takashi Washio, Patrik O. Hoyer
+and Kenneth Bollen
+==== PAGE 2 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+1. Introduction
+Many empirical sciences aim to discover and understand causal mechanis ms underlying various
+natural phenomena and human social behavior. An effective way to stud y causal relationships is
+to conduct a controlled experiment. However, performing controlled experiments is often ethically
+impossible or too expensive in many ﬁelds including social sciences (Bollen, 1989), bioinformatics
+(Rhein and Strimmer, 2007) and neuroinformatics (Londei et al., 2006). T hus, it is necessary and
+important to develop methods for causal inference based on the data that d o not come from such
+controlled experiments.
+Structural equation models (SEM) (Bollen, 1989) and Bayesian networks (BN) (Pearl, 2000;
+Spirtes et al., 1993) are widely applied to analyze causal relationships in man y empirical studies.
+A linear acyclic model that is a special case of SEM and BN is typically used to analyze causal
+effects between continuous variables. Estimation of the model commonly uses o nly the covariance
+structure of the data and in most cases cannot identify the full structure, that is, a causal ordering and
+connection strengths, of the model with no prior knowledge on the structure (Pearl, 2000; Spirtes
+et al., 1993).
+In Shimizu et al. (2006), a non-Gaussian variant of SEM and BN called a lin ear non-Gaussian
+acyclic model (LiNGAM) was proposed, and its full structure was shown to be identiﬁable without
+pre-specifying a causal order of the variables. This feature is a signiﬁ cant advantage over the con-
+ventional methods (Spirtes et al., 1993; Pearl, 2000). A non-Gaussian me thod to estimate the new
+model was also developed in Shimizu et al. (2006) and is closely related to independent component
+analysis (ICA) (Hyv¨arinen et al., 2001). In the subsequent studies, the non-Gaussian framework has
+been extended in various directions for learning a wider variety of SEM and BN (Hoyer et al., 2009;
+Hyv¨arinen et al., 2010; Lacerda et al., 2008). In what follows, we refer to the non-Gaussian model
+as LiNGAM and the estimation method as ICA-LiNGAM algorithm.
+Most of major ICA algorithms including Amari (1998) and Hyv¨arinen (1999) are iterative search
+methods (Hyv¨arinen et al., 2001). Therefore, the ICA-LiNGAM algorithms based on the ICA algo-
+rithms need some additional information including initial guess and convergence criteria. Gradient-
+based methods (Amari, 1998) further need step sizes. However, such a lgorithmic parameters are
+hard to optimize in a systematic way. Thus, the ICA-based algorithms may get stuck in local optima
+and may not converge to a reasonable solution if the initial guess is badly cho sen (Himberg et al.,
+2004).
+In this paper, we propose a new direct method to estimate a causal ordering of variables in the
+LiNGAM with no prior knowledge on the structure. The new method estimates a ca usal order of
+variables by successively subtracting the effect of each independen t component from given data
+in the model, and this process is completed in steps equal to the number of the var iables in the
+model. It is not based on iterative search in the parameter space and needs no initial guess or
+similar algorithmic parameters. It is guaranteed to converge to the right solution within a small
+ﬁxed number of steps if the data strictly follows the model, that is, if all the model assumptions
+are met and the sample size is inﬁnite. These features of the new method enable mo re accurate
+estimation of a causal order of the variables in a disambiguated and direct pr ocedure. Once the
+causal orders of variables is identiﬁed, the connection strengths betwee n the variables are easily
+estimated using some conventional covariance-based methods such as leas t squares and maximum
+likelihood approaches (Bollen, 1989). We also show how prior knowledg e on the structure can be
+incorporated in the new method.
+1226
+==== PAGE 3 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+The paper is structured as follows. First, in Section 2, we brieﬂy review LiNGAM and the ICA-
+based LiNGAM algorithm. We then in Section 3 introduce a new direct method. Th e performance
+of the new method is examined by experiments on artiﬁcial data in Section 4, and e xperiments on
+real-world data in Section 5. Conclusions are given in Section 6. Preliminaryresults were presented
+in Shimizu et al. (2009), Inazumi et al. (2010) and Sogawa et al. (2010).
+2. Background
+In this section, we ﬁrst review LiNGAM and the ICA-LiNGAM algorithm (Shimizu et al., 2006) in
+Sections 2.1-2.3 and next mention potential problems of the ICA-based algorithm in Section 2.4.
+2.1 A Linear Non-Gaussian Acyclic Model: LiNGAM
+In Shimizu et al. (2006), a non-Gaussian variant of SEM and BN, which is called LiNGAM, was
+proposed. Assume that observed data are generated from a process represented graphically by
+a directed acyclic graph, that is, DAG. Let us represent this DAG by a m×m adjacency matrix
+B={bi j} where every bi j represents the connection strength from a variable x j to another xi in the
+DAG. Moreover, let us denote by k(i) a causal order of variables xi in the DAG so that no later
+variable determines or has a directed path on any earlier variable. (A directed path from xi to x j is a
+sequence of directed edges such that x j is reachable from xi.) We further assume that the relations
+between variables are linear. Without loss of generality, each observed variable xi is assumed to
+have zero mean. Then we have
+xi = ∑
+k( j)<k(i)
+bi jx j + ei, (1)
+where ei is an external inﬂuence. All external inﬂuences ei are continuous random variables having
+non-Gaussian distributions with zero means and non-zero variances, andei are independent of each
+other so that there are no latent confounding variables (Spirtes et al., 1993).
+We rewrite the model (1) in a matrix form as follows:
+x = Bx + e, (2)
+where x is a p-dimensional random vector, and B could be permuted by simultaneous equal row
+and column permutations to be strictly lower triangular due to the acyclicity assumption (Bollen,
+1989). Strict lower triangularity is here deﬁned as a lower triangular struc ture with all zeros on the
+diagonal. Our goal is to estimate the adjacency matrix B by observing data x only. Note that we do
+not assume that the distribution of x is faithful (Spirtes et al., 1993) to the generating graph.
+We note that each bi j represents the direct causal effect of x j on xi and each ai j, the (i,j)-th
+element of the matrix A=(I − B)−1, the total causal effect of x j on xi (Hoyer et al., 2008).
+We emphasize that xi is equal to ei if no other observed variable x j ( j̸=i) inside the model has
+a directed edge to xi, that is, all the bi j ( j̸=i) are zeros. In such a case, an external inﬂuence ei is
+observed as xi. Such an xi is called an exogenous observed variable. Otherwise, ei is called an error.
+For example, consider the model deﬁned by
+x2 = e2,
+x1 = 1.5x2 + e1,
+x3 = 0.8x1 − 1.5x2 + e3,
+1227
+==== PAGE 4 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+where x2 is equal to e2 since it is not determined by either x1 or x3. Thus, x2 is an exogenous
+observed variable, and e1 and e3 are errors. Note that there exists at least one exogenous observed
+variable xi(=ei) due to the acyclicity and the assumption of no latent confounders.
+An exogenous observed variable is usually deﬁned as an observed va riable that is determined
+outside of the model (Bollen, 1989). In other words, an exogenous obs erved variable is a variable
+that any other observed variable inside the model does not have a directe d edge to. The deﬁnition
+does not require that it is equal to an independent external inﬂuence, and the external inﬂuences
+of exogenous observed variables may be dependent. However, in the L iNGAM (2), an exogenous
+observed variable is always equal to an independent external inﬂuence due to the assumption of no
+latent confounders.
+2.2 Identiﬁability of the Model
+We next explain how the connection strengths of the LiNGAM (2) can be iden tiﬁed as shown in
+Shimizu et al. (2006). Let us ﬁrst solve Equation (2) for x. Then we obtain
+x = Ae, (3)
+where A = (I − B)−1 is a mixing matrix whose elements are called mixing coefﬁcients and can
+be permuted to be lower triangular as well due to the aforementioned feature o f B and the nature
+of matrix inversion. Since the components of e are independent and non-Gaussian, Equation (3)
+deﬁnes the independent component analysis (ICA) model (Hyv¨arinen et al., 2001), which is known
+to be identiﬁable (Comon, 1994; Eriksson and Koivunen, 2004).
+ICA essentially can estimate A (and W = A−1 = I − B), but has permutation, scaling and sign
+indeterminacies. ICA actually gives WICA=PDW, where P is an unknown permutation matrix, and
+D is an unknown diagonal matrix. But in LiNGAM, the correct permutation matrix P can be found
+(Shimizu et al., 2006): the correct P is the only one that gives no zeros in the diagonal of DW since
+B should be a matrix that can be permuted to be strictly lower triangular and W = I − B. Further,
+one can ﬁnd the correct scaling and signs of the independent components by using the unity on
+the diagonal of W=I−B. One only has to divide the rows of DW by its corresponding diagonal
+elements to obtain W. Finally, one can compute the connection strength matrix B = I − W.
+2.3 ICA-LiNGAM Algorithm
+The ICA-LiNGAM algorithm presented in Shimizu et al. (2006) is described as follows:
+ICA-LiNGAM algorithm
+1. Given a p-dimensional random vector x and its p × n observed data matrix X, apply an ICA
+algorithm (FastICA of Hyv¨arinen 1999 using hyperbolic tangent function) to obtain anestimate
+of A.
+2. Find the unique permutation of rows of W=A−1 which yields a matrix˜
+W without any zeros on
+the main diagonal. The permutation is sought by minimizing ∑ i 1/|˜
+Wii|.
+3. Divide each row of ˜
+W by its corresponding diagonal element, to yield a new matrix˜
+W′ with all
+ones on the diagonal.
+1228
+==== PAGE 5 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+4. Compute an estimate ˆB of B usingˆB = I −˜
+W′.
+5. Finally, to estimate a causal order k(i), ﬁnd the permutation matrix ˜P ofˆB yielding a matrix
+˜B =˜PˆB˜PT which is as close as possible to a strictly lower triangular s tructure. The lower-
+triangularity of ˜B can be measured using the sum of squared bi j in its upper triangular part
+∑ i≤ j˜b2
+i j for small number of variables, say less than 8. For higher-di mensional data, the fol-
+lowing approximate algorithm is used, which sets small absolute valued elements in˜B to zero
+and tests if the resulting matrix is possible to be permuted to be strictly lower triangular:
+(a) Set the p(p + 1)/2 smallest (in absolute value) elements ofˆB to zero.
+(b) Repeat
+i. Test if ˆB can be permuted to be strictly lower triangular. If the answe r is yes, stop
+and return the permutedˆB, that is,˜B.
+ii. Additionally set the next smallest (in absolute value) e lement ofˆB to zero.
+2.4 Potential Problems of ICA-LiNGAM
+The original ICA-LiNGAM algorithm has several potential problems: i) Mos t ICA algorithms in-
+cluding FastICA (Hyv¨arinen, 1999) and gradient-based algorithms (Amari, 1998) may not converge
+to a correct solution in a ﬁnite number of steps if the initially guessed state is badlychosen (Himberg
+et al., 2004) or if the step size is not suitably selected for those gradient-based methods. The appro-
+priate selection of such algorithmic parameters is not easy. In contrast, our algorithm proposed in
+the next section is guaranteed to converge to the right solution in a ﬁxed number of steps equal to the
+number of variables if the data strictly follows the model. ii) The permutation algorithms in Steps 2
+and 5 are not scale-invariant. Hence they could give a different or even wrong ordering of variables
+depending on scales or standard deviations of variables especially when they have a wide range
+of scales. However, scales are essentially not relevant to the ordering of variables. Though such
+bias would vanish for large enough sample sizes, for practical sample size s, an estimated ordering
+could be affected when variables are normalized to make unit variance for example, and hence the
+estimation of a causal ordering becomes quite difﬁcult.
+3. A Direct Method: DirectLiNGAM
+In this section, we present a new direct estimation algorithm named DirectLiNGAM.
+3.1 Identiﬁcation of an Exogenous Variable Based on Non-Gaussianity and Independence
+In this subsection, we present two lemmas and a corollary1 that ensure the validity of our algorithm
+proposed in the next subsection 3.2. The basic idea of our method is as follo ws. We ﬁrst ﬁnd an
+exogenous variable based on its independence of the residuals of a numb er of pairwise regressions
+(Lemma 1). Next, we remove the effect of the exogenous variable from the other variables using
+least squares regression. Then, we show that a LiNGAM also holds for the residuals (Lemma 2)
+and that the same ordering of the residuals is a causal ordering for the original observed variables as
+1. We prove the lemmas and corollary without assuming the faithfulness (Spirtes et al., 1993) unlike our previous work
+(Shimizu et al., 2009).
+1229
+==== PAGE 6 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+well (Corollary 1). Therefore, we can ﬁnd the second variable in the causal ordering of the original
+observed variables by analyzing the residuals and their LiNGAM, that is, b y applying Lemma 1 to
+the residuals and ﬁnding an “exogenous” residual. The iteration of these effect removal and causal
+ordering estimates the causal order of the original variables.
+We ﬁrst quote Darmois-Skitovitch theorem (Darmois, 1953; Skitovitch, 1953)since it is used to
+prove Lemma 1:
+Theorem 1 (Darmois-Skitovitch theorem) Deﬁne two random variables y1 and y2 as linear com-
+binations of independent random variables si(i=1, · · ·, q):
+y1 =
+q
+∑
+i=1
+α isi, y2 =
+q
+∑
+i=1
+βisi.
+Then, if y1 and y2 are independent, all variables sj for which α jβ j ̸= 0 are Gaussian.
+In other words, this theorem means that if there exists a non-Gaussian s j for which α jβ j̸=0, y1 and
+y2 are dependent.
+Lemma 1 Assume that the input data x strictly follows the LiNGAM (2), that is, all the model
+assumptions are met and the sample size is inﬁnite. Denote by r( j)
+i the residual when xi is regressed
+on x j: r ( j)
+i = xi − cov(xi,x j)
+var(x j) x j (i ̸= j). Then a variable x j is exogenous if and only if xj is independent
+of its residuals r( j)
+i for all i ̸= j.
+Proof (i) Assume that x j is exogenous, that is, x j=e j. Due to the model assumption and Equa-
+tion (3), one can write xi=ai jx j+ ¯e( j)
+i (i̸= j), where ¯e( j)
+i =∑ h̸= j aiheh and x j are independent, and ai j
+is a mixing coefﬁcient from x j to xi in Equation (3). The mixing coefﬁcient ai j is equal to the re-
+gression coefﬁcient when xi is regressed on x j since cov(xi,x j)=ai jvar(x j). Thus, the residual r( j)
+i
+is equal to the corresponding error term, that is, r( j)
+i = ¯e( j)
+i . This implies that x j and r( j)
+i (= ¯e( j)
+i ) are
+independent.
+(ii) Assume that x j is not exogenous, that is, x j has at least one parent. Let Pj denote the (non-
+empty) set of the variable subscripts of parent variables ofx j. Then one can write x j = ∑ h∈Pj b jhxh +
+e j, where xh and e j are independent and each b jh is non-zero. Let a vector xPj and a column vector
+bPj collect all the variables in Pj and the corresponding connection strengths, respectively. Then,
+the covariances between xPj and x j are
+E(xPjx j) = E{xPj (bT
+PjxPj + e j)}
+= E(xPjbT
+PjxPj ) +E(xPje j)
+= E(xPjxT
+Pj )bPj . (4)
+The covariance matrix E(xPjxT
+Pj ) is positive deﬁnite since the external inﬂuences eh that correspond
+to those parent variables xh in Pj are mutually independent and have positive variances. Thus, the
+covariance vector E(xPjx j) = E(xPjxT
+Pj )bPj in Equation (4) cannot equal the zero vector, and there
+must be at least one variablexi (i ∈ Pj) with which x j covaries, that is, cov(xi,x j)̸=0. Then, for such
+1230
+==== PAGE 7 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+a variable xi (i ∈ Pj) that cov(xi,x j)̸=0, we have
+r( j)
+i = xi − cov(xi,x j)
+var(x j) x j
+= xi − cov(xi,x j)
+var(x j)
+(
+∑
+h∈Pj
+b jhxh + e j
+)
+=
+{
+1 − b jicov(xi,x j)
+var(x j)
+}
+xi − cov(xi,x j)
+var(x j) ∑
+h∈Pj,h̸=i
+b jhxh
+−cov(xi,x j)
+var(x j) e j.
+Each of those parent variables xh (including xi) in Pj is a linear combination of external inﬂuences
+other than ej due to the relation of xh to e j that x j = ∑ h∈Pj b jhxh +e j = ∑ h∈Pj b jh
+(
+∑ k(t)≤k(h) ahtet
+)
++
+e j , where et and e j are independent. Thus, the r( j)
+i and x j can be rewritten as linear combinations
+of independent external inﬂuences as follows:
+r( j)
+i =
+{
+1 − b jicov(xi,x j)
+var(x j)
+}(
+∑
+l̸= j
+ailel
+)
+− cov(xi,x j)
+var(x j) ∑
+h∈Pj,h̸=i
+b jh
+(
+∑
+t̸= j
+ahtet
+)
+−cov(xi,x j)
+var(x j) e j, (5)
+x j = ∑
+h∈Pj
+b jh
+(
+∑
+t̸= j
+ahtet
+)
++ e j. (6)
+The ﬁrst two terms of Equation (5) and the ﬁrst term of Equation (6) are line ar combinations of
+external inﬂuences other than e j, and the third term of Equation (5) and the second term of Equa-
+tion (6) depend only on e j and do not depend on the other external inﬂuences. Further, all the
+external inﬂuences including e j are mutually independent, and the coefﬁcient of non-Gaussian e j
+on r( j)
+i and that on x j are non-zero. These imply that r( j)
+i and x j are dependent since r( j)
+i , x j and e j
+correspond to y1, y2, s j in Darmois-Skitovitch theorem, respectively.
+From (i) and (ii), the lemma is proven.
+Lemma 2 Assume that the input data x strictly follows the LiNGAM (2). Further, assume that a
+variable x j is exogenous. Denote by r( j) a (p-1)-dimensional vector that collects the residuals r ( j)
+i
+when all x i of x are regressed on x j (i̸= j). Then a LiNGAM holds for the residual vector r( j):
+r( j) = B( j)r( j) + e( j), where B( j) is a matrix that can be permuted to be strictly lower-triangular by
+a simultaneous row and column permutation, and elements of e( j) are non-Gaussian and mutually
+independent.
+Proof Without loss of generality, assume that B in the LiNGAM (2) is already permuted to be
+strictly lower triangular and that x j=x1. Note that A in Equation (3) is also lower triangular (al-
+though its diagonal elements are all ones). Since x1 is exogenous, ai1 are equal to the regression
+coefﬁcients when xi are regressed on x1 (i ̸= 1). Therefore, after removing the effects of x1 from xi
+1231
+==== PAGE 8 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+by least squares estimation, one gets the ﬁrst column of A to be a zero vector, andx1 does not affect
+the residuals r(1)
+i . Thus, we again obtain a lower triangular mixing matrix A(1) with all ones in the
+diagonal for the residual vector r(1) and hence have a LiNGAM for the vector r(1).
+Corollary 1 Assume that the input data x strictly follows the LiNGAM (2). Further, assume that a
+variable x j is exogenous. Denote by kr( j)(i) a causal order of r( j)
+i . Recall that k (i) denotes a causal
+order of xi. Then, the same ordering of the residuals is a causal ordering for the or iginal observed
+variables as well: kr( j)(l)<kr( j)(m) ⇔ k(l)<k(m).
+Proof As shown in the proof of Lemma 2, when the effect of an exogenous variable x1 is removed
+from the other observed variables, the second to p-th columns of A remain the same, and the sub-
+matrix of A formed by deleting the ﬁrst row and the ﬁrst column is still lower triangular. This shows
+that the ordering of the other variables is not changed and proves the corollary.
+Lemma 2 indicates that the LiNGAM for the ( p−1)-dimensional residual vector r( j) can be
+handled as a new input model, and Lemma 1 can be further applied to the model to estimate the
+next exogenous variable (the next exogenous residual in fact). This process can be repeated until
+all variables are ordered, and the resulting order of the variable subscripts shows the causal order of
+the original observed variables according to Corollary 1.
+To apply Lemma 1 in practice, we need to use a measure of independence which is not restricted
+to uncorrelatedness since least squares regression gives residuals always uncorrelated with but not
+necessarily independent of explanatory variables. A common independe nce measure between two
+variables y1 and y2 is their mutual information MI(y1,y2) (Hyv¨arinen et al., 2001). In Bach and Jor-
+dan (2002), a nonparametric estimator of mutual information was developed using kernel methods.2
+Let K1 and K2 represent the Gram matrices whose elements are Gaussian kernel valuesof the sets of
+n observations of y1 and y2, respectively. The Gaussian kernel values K1(y(i)
+1 ,y( j)
+1 ) and K2(y(i)
+2 ,y( j)
+2 )
+(i,j = 1,· · ·,n) are computed by
+K1(y(i)
+1 ,y( j)
+1 ) = exp
+(
+− 1
+2σ 2 ∥y(i)
+1 − y( j)
+1 ∥2
+)
+,
+K2(y(i)
+2 ,y( j)
+2 ) = exp
+(
+− 1
+2σ 2 ∥y(i)
+2 − y( j)
+2 ∥2
+)
+,
+where σ >0 is the bandwidth of Gaussian kernel. Further let κ denote a small positive constant.
+Then, in Bach and Jordan (2002), the kernel-based estimator of mutual information is deﬁned as:
+ˆMIkernel (y1,y2) = −1
+2 log detKκ
+detDκ
+,
+where
+Kκ =
+[ (
+K1 + nκ
+2 I
+) 2 K1K2
+K2K1
+(
+K2 + nκ
+2 I
+) 2
+]
+,
+Dκ =
+[ (
+K1 + nκ
+2 I
+) 2 0
+0
+(
+K2 + nκ
+2 I
+) 2
+]
+.
+2. Matlab codes can be downloaded athttp://www.di.ens.fr/˜fbach/kernel-ica/index.htm.
+1232
+==== PAGE 9 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+As the bandwidth σ of Gaussian kernel tends to zero, the population counterpart of the estima tor
+converges to the mutual information up to second order when it is expanded around distributions
+with two variables y1 and y2 being independent (Bach and Jordan, 2002). The determinants of the
+Gram matrices K1 and K2 can be efﬁciently computed by using the incomplete Cholesky decompo-
+sition to ﬁnd their low-rank approximations of rank M (≪ n). In Bach and Jordan (2002), it was
+suggested that the positive constantκ and the width of the Gaussian kernelσ are set to κ = 2 ×10−3,
+σ = 1/2 for n > 1000 and κ = 2 × 10−2, σ = 1 for n ≤ 1000 due to some theoretical and computa-
+tional considerations.
+In this paper, we use the kernel-based independence measure. We ﬁrs t evaluate pairwise in-
+dependence between a variable and each of the residuals and next take the sum of the pairwise
+measures over the residuals. Let us denote by U the set of the subscripts of variables xi, that is,
+U={1, · · ·, p}. We use the following statistic to evaluate independence between a variable x j and
+its residuals r( j)
+i = xi − cov(xi,x j)
+var(x j) x j when xi is regressed on x j:
+Tkernel (x j;U) = ∑
+i∈U,i̸= j
+ˆMIkernel (x j,r( j)
+i ). (7)
+Many other nonparametric independence measures (Gretton et al., 2005; Kraskov et al., 2004) and
+more computationally simple measures that use a single nonlinear correlation (Hy v¨arinen, 1998)
+have also been proposed. Any such proposed method of independenc e could potentially be used
+instead of the kernel-based measure in Equation (7).
+3.2 DirectLiNGAM Algorithm
+We now propose a new direct algorithm called DirectLiNGAM to estimate a causa l ordering and
+the connection strengths in the LiNGAM (2):
+DirectLiNGAM algorithm
+1. Given a p-dimensional random vector x, a set of its variable subscripts U and a p × n data
+matrix of the random vector as X, initialize an ordered list of variables K := /0 and m := 1.
+2. Repeat until p−1 subscripts are appended to K:
+(a) Perform least squares regressions of xi on x j for all i ∈ U\K (i ̸= j) and compute the
+residual vectors r( j) and the residual data matrix R( j) from the data matrix X for all
+j ∈ U\K. Find a variable xm that is most independent of its residuals:
+xm = arg min
+j∈U\K
+Tkernel (x j;U\K),
+where Tkernel is the independence measure deﬁned in Equation (7).
+(b) Append m to the end of K.
+(c) Let x := r(m), X := R(m).
+3. Append the remaining variable to the end of K.
+1233
+==== PAGE 10 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+4. Construct a strictly lower triangular matrix B by following the order in K, and estimate the
+connection strengths bi j by using some conventional covariance-based regression su ch as
+least squares and maximum likelihood approaches on the orig inal random vector x and the
+original data matrix X. We use least squares regression in this paper.
+3.3 Computational Complexity
+Here, we consider the computational complexity of DirectLiNGAM compared with the
+ICA-LiNGAM with respect to sample size n and number of variables p. A dominant part of Di-
+rectLiNGAM is to compute Equation (7) for each x j in Step 2(a). Since it requires O(np2M2 +
+p3M3) operations (Bach and Jordan, 2002) in p−1 iterations, complexity of the step is O(np3M2 +
+p4M3), where M (≪ n) is the maximal rank found by the low-rank decomposition used in the
+kernel-based independence measure. Another dominant part is the regression to estimate the matrix
+B in Step 4. The complexity of many representative regressions including the least square algorithm
+is O(np3). Hence, we have a total budget of O(np3M2 + p4M3). Meanwhile, the ICA-LiNGAM re-
+quires O(p4) time to ﬁnd a causal order in Step 5. Complexity of an iteration in FastICA procedure
+at Step 1 is known to be O(np2). Assuming a constant number C of the iterations in FastICA steps,
+the complexity of the ICA-LiNGAM is considered to be O(Cnp 2 + p4). Though general evaluation
+of the required iteration number C is difﬁcult, it can be conjectured to grow linearly with regards to
+p. Hence the complexity of the ICA-LiNGAM is presumed to be O(np3 + p4).
+Thus, the computational cost of DirectLiNGAM would be larger than that of I CA-LiNGAM
+especially when the low-rank approximation of the Gram matrices is not so efﬁ cient, that is, M is
+large. However, we note the fact that DirectLiNGAM has guaranteed convergence in a ﬁxed number
+of steps and is of known complexity, whereas for typical ICA algorithms inclu ding FastICA, the
+run-time complexity and the very convergence are not guaranteed.
+3.4 Use of Prior Knowledge
+Although DirectLiNGAM requires no prior knowledge on the structure, more efﬁcient learning can
+be achieved if some prior knowledge on a part of the structure is available because then the number
+of causal orders and connection strengths to be estimated gets smaller.
+We present three lemmas to use prior knowledge in DirectLiNGAM. Let us ﬁrst deﬁne a matrix
+Aknw=[aknw
+ji ] that collects prior knowledge under the LiNGAM (2) as follows:
+aknw
+ji :=
+
+
+
+
+
+
+
+0 if xi does not have a directed path to x j
+1 if xi has a directed path to x j
+−1 if no prior knowledge is available to know if either
+of the two cases above (0 or 1) is true.
+Due to the deﬁnition of exogenous variables and that of prior knowledge matrix Aknw, we readily
+obtain the following three lemmas.
+Lemma 3 Assume that the input data x strictly follows the LiNGAM (2). An observed variable x j
+is exogenous if aknw
+ji is zero for all i̸= j.
+Lemma 4 Assume that the input data x strictly follows the LiNGAM (2). An observed variable x j
+is endogenous, that is, not exogenous, if there exist such i̸= j that aknw
+ji is unity.
+1234
+==== PAGE 11 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+Lemma 5 Assume that the input data x strictly follows the LiNGAM (2). An observed variable x j
+does not receive the effect of xi if aknw
+ji is zero.
+The principle of making DirectLiNGAM algorithm more accurate and faster bas ed on prior
+knowledge is as follows. We ﬁrst ﬁnd an exogenous variable by applying Lemma 3 instead of
+Lemma 1 if an exogenous variable is identiﬁed based on prior knowledge. Th en we do not have to
+evaluate independence between any observed variable and its residuals . If no exogenous variable
+is identiﬁed based on prior knowledge, we next ﬁnd endogenous (non- exogenous) variables by
+applying Lemma 4. Since endogenous variables are never exogenous we can narrow down the
+search space to ﬁnd an exogenous variable based on Lemma 1. We can fu rther skip to compute
+the residual of an observed variable and take the variable itself as the res idual if its regressor does
+not receive the effect of the variable due to Lemma 5. Thus, we can decr ease the number of causal
+orders and connection strengths to be estimated, and it improves the accura cy and computational
+time. The principle can also be used to further analyze the residuals and ﬁnd the next exogenous
+residual because of Corollary 1. To implement these ideas, we only have to replace Step 2a in
+DirectLiNGAM algorithm by the following steps:
+2a-1 Find such a variable(s) x j ( j ∈ U\K) that the j-th row of Aknw has zero in the i-th column
+for all i ∈ U\K (i ̸= j) and denote the set of such variables by Uexo. If Uexo is not empty, set
+Uc := Uexo. If Uexo is empty, ﬁnd such a variable(s)x j ( j ∈ U\K) that the j-th row of Aknw has
+unity in the i-th column for at least one of i ∈ U\K (i ̸= j), denote the set of such variables by
+Uend and set Uc := U\K\Uend.
+2a-2 Denote by V ( j) a set of such a variable subscript i ∈ U\K (i ̸= j) that aknw
+i j = 0 for all j ∈ Uc.
+First set r( j)
+i := xi for all i ∈ V ( j), next perform least squares regressions of xi on x j for all
+i ∈ U\K\V ( j) (i ̸= j) and estimate the residual vectors r( j) and the residual data matrix R( j)
+from the data matrix X for all j ∈ Uc. If Uc has a single variable, set the variable to be xm.
+Otherwise, ﬁnd a variable xm in Uc that is most independent of the residuals:
+xm = arg min
+j∈Uc
+Tkernel (x j;U\K),
+where Tkernel is the independence measure deﬁned in Equation (7).
+4. Simulations
+We ﬁrst randomly generated 5 data sets based on sparse networks under each combination of number
+of variables p and sample size n (p=10, 20, 50, 100; n=500, 1000, 2000):
+1. We constructed the p × p adjacency matrix with all zeros and replaced every element in the
+lower-triangular part by independent realizations of Bernoulli random variables with success
+probability s similarly to Kalisch and B ¨uhlmann (2007). The probability s determines the
+sparseness of the model. The expected number of adjacent variables of each variable is given
+by s(p − 1). We randomly set the sparseness s so that the number of adjacent variables was 2
+or 5 (Kalisch and B¨uhlmann, 2007).
+2. We replaced each non-zero (unity) entry in the adjacency matrix by a value randomly chosen
+from the interval [−1.5,−0.5] ∪ [0.5,1.5] and selected variances of the external inﬂuences
+1235
+==== PAGE 12 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+/K54 /K72/K75/K65/K20/K62/K69/K6A
+/K45/K73/K74/K69/K6D/K61/K74/K65/K64/K20/K62/K69/K6A
+/K35/K30/K30 /K31/K30/K30/K30 /K32/K30/K30/K30
+/K53/K61/K6D/K70/K6C/K65/K20/K73/K69/K7A/K65
+/K6E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20/K76/K61/K72/K69/K61/K62/K6C/K65/K73
+/K31/K30
+/K32/K30
+/K35/K30
+/K31/K30/K30
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+/K54 /K72/K75/K65/K20/K62/K69/K6A
+/K45/K73/K74/K69/K6D/K61/K74/K65/K64/K20/K62/K69/K6A
+/K35/K30/K30 /K31/K30/K30/K30 /K32/K30/K30/K30
+/K53/K61/K6D/K70/K6C/K65/K20/K73/K69/K7A/K65
+/K6E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20/K76/K61/K72/K69/K61/K62/K6C/K65/K73
+/K31/K30
+/K32/K30
+/K35/K30
+/K31/K30/K30
+Figure 1: Left: Scatterplots of the estimated bi j by DirectLiNGAM versus the true values forsparse
+networks. Right: Scatterplots of the estimatedbi j by ICA-LiNGAM versus the true values
+for sparse networks.
+ei from the interval [1,3] as in Silva et al. (2006). We used the resulting matrix as the data-
+generating adjacency matrix B.
+3. We generated data with sample size n by independently drawing the external inﬂuence vari-
+ables ei from various 18 non-Gaussian distributions used in Bach and Jordan (2002) including
+(a) Student with 3 degrees of freedom; (b) double exponential; (c) unif orm; (d) Student with
+5 degrees of freedom; (e) exponential; (f) mixture of two double expone ntials; (g)-(h)-(i)
+symmetric mixtures of two Gaussians: multimodal, transitional and unimodal; (j)-(k)-(l) non-
+symmetric mixtures of two Gaussians, multimodal, transitional and unimodal; (m)-(n) -(o)
+symmetric mixtures of four Gaussians: multimodal, transitional and unimodal; (p)- (q)-(r)
+nonsymmetric mixtures of four Gaussians: multimodal, transitional and unimodal. S ee Fig-
+ure 5 of Bach and Jordan (2002) for the shapes of the probability density functions.
+4. The values of the observed variables xi were generated according to the LiNGAM (2). Finally,
+we randomly permuted the order of xi.
+Further we similarly generated 5 data sets based on dense (full) networks,that is, full DAGs with ev-
+ery pair of variables is connected by a directed edge, under each combination of number of variables
+p and sample size n. Then we tested DirectLiNGAM and ICA-LiNGAM on the data sets generated
+by sparse networks or dense (full) networks. For ICA-LiNGAM, the maximum number of iterations
+was taken as 1000 (Shimizu et al., 2006). The experiments were conducted on a standard PC using
+Matlab 7.9. Matlab implementations of the two methods are available on the web:
+DirectLiNGAM:
+http://www.ar.sanken.osaka-u.ac.jp/˜inazumi/dlingam.html,
+ICA-LiNGAM:http://www.cs.helsinki.fi/group/neuroinf/lingam/.
+We computed the distance between the true B and ones estimated by DirectLiNGAM and ICA-
+LiNGAM using the Frobenius norm deﬁned as
+√
+trace{(Btrue −ˆB)T (Btrue −ˆB)}.
+1236
+==== PAGE 13 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+Sparse networks Sample size
+500 1000 2000
+DirectLiNGAM dim. = 10 0.48 0.31 0.21
+dim. = 20 1.19 0.70 0.50
+dim. = 50 2.57 1.82 1.40
+dim. = 100 5.75 4.61 2.35
+ICA-LiNGAM dim. = 10 3.01 0.74 0.65
+dim. = 20 9.68 3.00 2.06
+dim. = 50 20.61 20.23 12.91
+dim. = 100 40.77 43.74 36.52
+DirectLiNGAM with dim. = 10 0.48 0.30 0.24
+prior knowledge (50%) dim. = 20 1.00 0.71 0.49
+dim. = 50 2.47 1.75 1.19
+dim. = 100 4.94 3.89 2.27
+Dense (full) networks Sample size
+500 1000 2000
+DirectLiNGAM dim. = 10 0.45 0.46 0.20
+dim. = 20 1.46 1.53 1.12
+dim. = 50 4.40 4.57 3.86
+dim. = 100 7.38 6.81 6.19
+ICA-LiNGAM dim. = 10 1.71 2.08 0.39
+dim. = 20 6.70 3.38 1.88
+dim. = 50 17.28 16.66 12.05
+dim. = 100 34.95 34.02 32.02
+DirectLiNGAM with dim. = 10 0.45 0.31 0.19
+prior knowledge (50%) dim. = 20 0.84 0.90 0.41
+dim. = 50 2.48 1.86 1.56
+dim. = 100 4.67 3.60 2.61
+Table 1: Median distances (Frobenius norms) between true B and estimated B of DirectLiNGAM
+and ICA-LiNGAM with ﬁve replications.
+Tables 1 and 2 show the median distances (Frobenius norms) and median computational times (CPU
+times), respectively. In Table 1, DirectLiNGAM was better in distances ofB and gave more accurate
+estimates of B than ICA-LiNGAM for all of the conditions. In Table 2, the computation amount of
+DirectLiNGAM was rather larger than ICA-LiNGAM when the sample size was increased. A main
+bottleneck of computation was the kernel-based independence measure. H owever, its computation
+amount can be considered to be still tractable. In fact, the actual elapsed time s were approximately
+one-quarter of their CPU times respectively probably because the CPU had four cores. Interestingly,
+the CPU time of ICA-LiNGAM actually decreased with increased sample size in so me cases. This
+is presumably due to better convergence properties.
+To visualize the estimation results, Figures 1 and 2 give combined scatterplots of the estimated
+elements of B of DirectLiNGAM and ICA-LiNGAM versus the true ones for sparse netwo rks and
+1237
+==== PAGE 14 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+Sparse networks Sample size
+500 1000 2000
+DirectLiNGAM dim. = 10 15.16 sec. 37.21 sec. 66.75 sec.
+dim. = 20 1.56 min. 5.75 min. 17.22 min.
+dim. = 50 16.25 min. 1.34 hrs. 2.70 hrs.
+dim. = 100 2.35 hrs. 21.17 hrs. 19.90 hrs.
+ICA-LiNGAM dim. = 10 0.73 sec. 0.41 sec. 0.28 sec.
+dim. = 20 5.40 sec. 2.45 sec. 1.14 sec.
+dim. = 50 14.49 sec. 21.47 sec. 32.03 sec.
+dim. = 100 46.32 sec. 58.02 sec. 1.16 min.
+DirectLiNGAM with dim. = 10 4.13 sec. 17.75 sec. 30.95 sec.
+prior knowledge (50%) dim. = 20 28.02 sec. 1.64 min. 4.98 min.
+dim. = 50 7.62 min. 28.89 min. 1.09 hrs.
+dim. = 100 48.28 min. 1.84 hrs. 7.51 hrs.
+Dense (full) networks Sample size
+500 1000 2000
+DirectLiNGAM dim. = 10 8.05 sec. 24.52 sec. 49.44 sec.
+dim. = 20 1.00 min. 4.23 min. 6.91 min.
+dim. = 50 16.18 min. 1.12 hrs. 1.92 hrs.
+dim. = 100 2.16 hrs. 8.59 hrs. 17.24 hrs.
+ICA-LiNGAM dim. = 10 0.97 sec. 0.34 sec. 0.27 sec.
+dim. = 20 5.35 sec. 1.25 sec. 4.07 sec.
+dim. = 50 15.58 sec. 21.01 sec. 31.57 sec.
+dim. = 100 47.60 sec. 56.57 sec. 1.36 min.
+DirectLiNGAM with dim. = 10 2.67 sec. 5.66 sec. 12.31 sec.
+prior knowledge (50%) dim. = 20 5.02 sec. 31.70 sec. 38.35 sec.
+dim. = 50 46.74 sec. 2.89 min. 5.00 min.
+dim. = 100 3.19 min. 10.44 min. 19.80 min.
+Table 2: Median computational times (CPU times) of DirectLiNGAM and ICA-LiNGAM with ﬁve
+replications.
+dense (full) networks, respectively. The different plots correspond to different numbers of variables
+and different sample sizes, where each plot combines the data for different adjacency matricesB and
+18 different distributions of the external inﬂuences p(ei). We can see that DirectLiNGAM worked
+well and better than ICA-LiNGAM, as evidenced by the grouping of the data points onto the main
+diagonal.
+Finally, we generated data sets in the same manner as above and gave some pr ior knowledge
+to DirectLiNGAM by creating prior knowledge matrices Aknw as follows. We ﬁrst replaced every
+non-zero element by unity and every diagonal element by zero in A=(I − B)−1 and subsequently
+hid each of the off-diagonal elements, that is, replaced it by −1, with probability 0.5. The bottoms
+of Tables 1 and 2 show the median distances and median computational times. It w as empirically
+conﬁrmed that use of prior knowledge gave more accurate estimates and les s computational times
+1238
+==== PAGE 15 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+/K54 /K72/K75/K65/K20/K62/K69/K6A
+/K45/K73/K74/K69/K6D/K61/K74/K65/K64/K20/K62/K69/K6A
+/K35/K30/K30 /K31/K30/K30/K30 /K32/K30/K30/K30
+/K53/K61/K6D/K70/K6C/K65/K20/K73/K69/K7A/K65
+/K6E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20/K76/K61/K72/K69/K61/K62/K6C/K65/K73
+/K31/K30
+/K32/K30
+/K35/K30
+/K31/K30/K30
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+0 2
+0
+2
+/K54 /K72/K75/K65/K20/K62/K69/K6A
+/K45/K73/K74/K69/K6D/K61/K74/K65/K64/K20/K62/K69/K6A
+/K35/K30/K30 /K31/K30/K30/K30 /K32/K30/K30/K30
+/K53/K61/K6D/K70/K6C/K65/K20/K73/K69/K7A/K65
+/K6E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20/K76/K61/K72/K69/K61/K62/K6C/K65/K73
+/K31/K30
+/K32/K30
+/K35/K30
+/K31/K30/K30
+Figure 2: Left: Scatterplots of the estimated bi j by DirectLiNGAM versus the true values fordense
+(full) networks. Right: Scatterplots of the estimated bi j by ICA-LiNGAM versus the true
+values for dense (full) networks.
+in most cases especially for dense (full) networks. The reason would pr obably be that for dense
+(full) networks more prior knowledge about where directed paths exist w ere likely to be given and
+it narrowed down the search space more efﬁciently.
+5. Applications to Real-world Data
+We here apply DirectLiNGAM and ICA-LiNGAM on real-world physics and sociology data. Both
+DirectLiNGAM and ICA-LiNGAM estimate a causal ordering of variables andprovide a full DAG.
+Then we have two options to do further analysis (Hyv ¨arinen et al., 2010): i) Find signiﬁcant di-
+rected edges or direct causal effects bi j and signiﬁcant total causal effects ai j with A=(I − B)−1; ii)
+Estimate redundant directed edges to ﬁnd the underlying DAG. We demonstrate an example of the
+former in Section 5.1 and that of the latter in Section 5.2.
+5.1 Application to Physical Data
+We applied DirectLiNGAM and ICA-LiNGAM on a data set created from a physical system called
+a double-pendulum, a pendulum with another pendulum attached to its end (Me irovitch, 1986) as
+in Figure 3. The data set was ﬁrst used in Kawahara et al. (2011). The raw data consisted of four
+time series provided by Ibaraki University (Japan) ﬁlming the pendulum sy stem with a high-speed
+video camera at every 0.01 second for 20.3 seconds and then reading out the position using an image
+analysis software. The four variables were θ1: the angle between the top limb and the vertical, θ2:
+the angle between the bottom limb and the vertical, ω 1: the angular speed of θ1 or ˙θ1 and ω 2: the
+angular speed of θ2 or ˙θ2. The number of time points was 2035. The data set is available on the
+web:
+http://www.ar.sanken.osaka-u.ac.jp/˜inazumi/data/furiko.html.
+In Kawahara et al. (2011), some theoretical considerations based on th e domain knowledge
+implied that the angle speeds ω 1 and ω 2 are mainly determined by the angles θ1 and θ2 in both
+cases where the swing of the pendulum is sufﬁciently small (θ1,θ2 ≈ 0) and where the swing is not
+1239
+==== PAGE 16 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+/K31
+/K32
+Figure 3: Abstract model of the double-pendulum used in Kawahara et al. (2011).
+/j131/j198/K31
+/j131/j198/K32
+/j131/j214/K31
+/j131/j214/K32
+/j131/j198/K31
+/j131/j198/K32
+/j131/j214/K31
+/j131/j214/K32
+/K44/K69/K72/K65/K63/K74/K4C/K69/K4E/K47/K41/K4D /K49/K43/K41/K2D/K4C/K69/K4E/K47/K41/K4D
+Figure 4: Left: The estimated network by DirectLiNGAM. Only signiﬁcant dire cted edges are
+shown with 5% signiﬁcance level. Right: The estimated network by ICA-LiNGAM .
+No signiﬁcant directed edges were found with 5% signiﬁcance level.
+/j131/j198/K31
+/j131/j198/K32
+/j131/j214/K31
+/j131/j214/K32
+/K50/K43
+/K47/K45/K53
+/j131/j198/K31
+/j131/j198/K32
+/j131/j214/K31
+/j131/j214/K32
+Figure 5: Left: The estimated network by PC algorithm with 5% signiﬁcance leve l. Right: The
+estimated network by GES. An undirected edge between two variables means th at there
+is a directed edge from a variable to the other or the reverse.
+very small. Further, in practice, it was reasonable to assume that there wer e no latent confounders
+(Kawahara et al., 2011).
+As a preprocessing, we ﬁrst removed the time dependency from the raw d ata using the ARMA
+(AutoRegressive Moving Average) model with 2 autoregressive terms and 5 moving average terms
+following Kawahara et al. (2011). Then we applied DirectLiNGAM and ICA -LiNGAM on the
+1240
+==== PAGE 17 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+preprocessed data. The estimated adjacency matrices B of θ1, θ2, ω 1 and ω 2 were as follows:
+DirectLiNGAM :
+
+
+
+
+θ1 θ2 ω 1 ω 2
+θ1 0 0 0 0
+θ2 −0.23 0 0 0
+ω 1 90.39 −2.88 0 0
+ω 2 5.65 94 .64 −0.11 0
+
+
+
+,
+ICA − LiNGAM :
+
+
+
+
+θ1 θ2 ω 1 ω 2
+θ1 0 0 0 0
+θ2 1.45 0 0 0
+ω 1 108.82 −52.73 0 0
+ω 2 216.26 112 .50 −1.89 0
+
+
+
+.
+The estimated orderings by DirectLiNGAM and ICA-LiNGAM were identical, bu t the estimated
+connection strengths were very different. We further computed their 95% conﬁdence intervals by
+using bootstrapping (Efron and Tibshirani, 1993) with the number of boots trap replicates 10000.
+The estimated networks by DirectLiNGAM and ICA-LiNGAM are graphically sh own in Figure 4,
+where only signiﬁcant directed edges (direct causal effects) bi j are shown with 5% signiﬁcance
+level.3 DirectLiNGAM found that the angle speeds ω 1 and ω 2 were determined by the angles θ1
+or θ2, which was consistent with the domain knowledge. Though the directed edge from θ1 to θ2
+might be a bit difﬁcult to interpret, the effect of θ1 on θ2 was estimated to be negligible since the
+coefﬁcient of determination (Bollen, 1989) of θ2, that is, 1 −var( ˆe2)/var(ˆθ2), was very small and
+was 0.01. (The coefﬁcient of determination of ω 1 and that of ω 2 were 0.46 and 0.49, respectively.)
+On the other hand, ICA-LiNGAM could not ﬁnd any signiﬁcant directed ed ges since it gave very
+different estimates for different bootstrap samples.
+For further comparison, we also tested two conventional methods (Spirtes and Glymour, 1991;
+Chickering, 2002) based on conditional independences. Figure 5 sho ws the estimated networks by
+PC algorithm (Spirtes and Glymour, 1991) with 5% signiﬁcance level and GES (Chickering, 2002)
+with the Gaussianity assumption. We used the Tetrad IV 4 to run the two methods. PC algorithm
+found the same directed edge from θ1 on ω 1 as DirectLiNGAM did, but did not found the directed
+edge from θ2 on ω 2. GES found the same directed edge from θ1 on θ2 as DirectLiNGAM did, but
+did not ﬁnd that the angle speeds ω 1 and ω 2 were determined by the angles θ1 or θ2.
+We also computed the 95% conﬁdence intervals of the total causal effects ai j using bootstrap.
+DirectLiNGAM found signiﬁcant total causal effects from θ1 on θ2, from θ1 on ω 1, from θ1 on ω 2,
+from θ2 on ω 1, and from θ2 on ω 2. These signiﬁcant total effects would also be reasonable based
+on similar arguments. ICA-LiNGAM only found a signiﬁcant total causal effect from θ2 on ω 2.
+Overall, although the four variables θ1, θ2, ω 1 and ω 2 are likely to be nonlinearly related ac-
+cording to the domain knowledge (Meirovitch, 1986; Kawahara et al., 2011), DirectLiNGAM gave
+interesting results in this example.
+5.2 Application to Sociology Data
+We analyzed a data set taken from a sociological data repository on the In ternet called General
+Social Survey (
+http://www.norc.org/GSS+Website/). The data consisted of six observed vari-
+3. The issue of multiple comparisons arises in this context, which we would like to study in future work.
+4. Tetrad IV is available athttp://www.phil.cmu.edu/projects/tetrad/.
+1241
+==== PAGE 18 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K33/K29
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K31/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K35/K29
+/K4E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20
+/K53/K69/K62/K6C/K69/K6E/K67/K73/K20
+/K28/K78/K36/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K34/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K49/K6E/K63/K6F/K6D/K65/K20
+/K28/K78/K32/K29
+Figure 6: Status attainment model based on domain knowledge (Duncan et al., 1972). A directed
+edge between two variables in the ﬁgure means that there could be a directed edge be-
+tween the two. A bi-directed edge between two variables means that the relation is not
+modeled. For instance, there could be latent confounders between the two, there could be
+a directed edge between the two, or the two could be independent.
+ables, x1: father’s occupation level, x2: son’s income, x3: father’s education, x4: son’s occupation
+level, x5: son’s education,x6: number of siblings. ( x6 is discrete but is relatively close to be contin-
+uous since it is an ordinal scale with many points.) The sample selection was con ducted based on
+the following criteria: i) non-farm background; ii) ages 35 to 44; iii) white; iv) male; v) in the labor
+force at the time of the survey; vi) not missing data for any of the covariates; vii) years 1972-2006.
+The sample size was 1380. Figure 6 shows domain knowledge about their causal relations (Duncan
+et al., 1972). As shown in the ﬁgure, there could be some latent confound ers between x1 and x3, x1
+and x6, or x3 and x6. An objective of this example was to see how our method behaves when such a
+model assumption of LiNGAM could be violated that there is no latent confounder.
+The estimated adjacency matrices B by DirectLiNGAM and ICA-LiNGAM were as follows:
+DirectLiNGAM :
+
+
+
+
+
+
+
+
+x1 x2 x3 x4 x5 x6
+x1 0 0 3 .19 0 .10 0 .41 0 .21
+x2 33.48 0 452 .84 422 .87 1645 .45 347 .96
+x3 0 0 0 0 0 .55 −0.18
+x4 0 0 0 .17 0 4 .61 −0.19
+x5 0 0 0 0 0 −0.12
+x6 0 0 0 0 0 0
+
+
+
+
+
+
+
+
+,
+ICA − LiNGAM :
+
+
+
+
+
+
+
+
+x1 x2 x3 x4 x5 x6
+x1 0 0 0 .93 0 −0.68 −0.20
+x2 50.70 0 −31.82 200 .84 65 .63 336 .04
+x3 0 0 0 0 0 .24 −0.27
+x4 0.17 0 −0.40 0 −0.14 −0.14
+x5 0 0 0 0 0 0
+x6 0 0 0 0 −0.08 0
+
+
+
+
+
+
+
+
+.
+1242
+==== PAGE 19 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+We subsequently pruned redundant directed edges bi j in the full DAGs by repeatedly apply-
+ing a sparse method called Adaptive Lasso (Zou, 2006) on each variable and its potential parents.
+See Appendix A for some more details of Adaptive Lasso. We used a matlab imple mentation in
+Sj¨ostrand (2005) to run the Lasso. Then we obtained the following pruned adjacency matrices B:
+DirectLiNGAM :
+
+
+
+
+
+
+
+
+x1 x2 x3 x4 x5 x6
+x1 0 0 3 .19 0 0 0
+x2 0 0 0 422 .87 0 0
+x3 0 0 0 0 0 .55 0
+x4 0 0 0 0 4 .61 0
+x5 0 0 0 0 0 −0.12
+x6 0 0 0 0 0 0
+
+
+
+
+
+
+
+
+,
+ICA − LiNGAM :
+
+
+
+
+
+
+
+
+x1 x2 x3 x4 x5 x6
+x1 0 0 0 .93 0 0 0
+x2 0 0 0 200 .84 0 0
+x3 0 0 0 0 0 .24 0
+x4 0 0 0 0 −0.14 0
+x5 0 0 0 0 0 0
+x6 0 0 0 0 −0.08 0
+
+
+
+
+
+
+
+
+.
+The estimated networks by DirectLiNGAM and ICA-LiNGAM are graphically sh own in Fig-
+ure 7 and Figure 8, respectively. All the directed edges estimated by Direc tLiNGAM were reason-
+able to the domain knowledge other than the directed edge from x5: son’s education to x3: father’s
+education. Since the sample size was large and yet the estimated model was not fully correct, the
+mistake on the directed edge betweenx5 and x3 might imply that some model assumptions might be
+more or less violated in the data. ICA-LiNGAM gave a similar estimated network butdid one more
+mistake that x6: number of siblings is determined by x5: son’s education.
+Further, Figure 9 and Figure 10 show the estimated networks by PC algorithm with 5% signif-
+icance level and GES with the Gaussianity assumption. Both of the conventiona l methods did not
+ﬁnd the directions of many edges. The two conventional methods found a re asonable direction of
+the edge between x1: father’s occupation andx3: father’s education, but they gave a wrong direction
+of the edge between x1: father’s occupation andx4: son’s occupation.
+6. Conclusion
+We presented a new estimation algorithm for the LiNGAM that has guaranteed c onvergence to
+the right solution in a ﬁxed number of steps if the data strictly follows the model, tha t is, if all
+the model assumptions are met and the sample size is inﬁnite. Further, the new alg orithm has
+known computational complexity. This is the ﬁrst algorithm specialized to estimate th e LiNGAM.
+Simulations implied that the new method often provides better statistical performance than a state of
+the art method based on ICA. In real-world applications to physics and sociology, interesting results
+were obtained. Future works would include i) assessment of practical performance of statistical tests
+to detect violations of the model assumptions including tests of independence ( Gretton and Gy¨orﬁ,
+2010); ii) implementation issues of our algorithm to improve the practical computational efﬁciency;
+iii) extensions of our algorithm to more general cases including the cases with latent confounders
+1243
+==== PAGE 20 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+/K46/K61/K74/K68/K65/K72 /KD5 /K73
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E
+/K28/K78/K33/K29
+/K46/K61/K74/K68/K65/K72 /KD5 /K73
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E
+/K28/K78/K31/K29
+/K53/K6F/K6E/KD5 /K73
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E
+/K28/K78/K35/K29
+/K4E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20
+/K53/K69/K62/K6C/K69/K6E/K67/K73
+/K28/K78/K36/K29
+/K53/K6F/K6E/KD5 /K73
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E
+/K28/K78/K34/K29
+/K53/K6F/K6E/KD5 /K73
+/K49/K6E/K63/K6F/K6D/K65
+/K28/K78/K32/K29
+Figure 7: The estimated network by DirectLiNGAM and Adaptive Lasso. A red solid directed edge
+is reasonable to the domain knowledge.
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K33/K29
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K31/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K35/K29
+/K4E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20
+/K53/K69/K62/K6C/K69/K6E/K67/K73/K20
+/K28/K78/K36/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K34/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K49/K6E/K63/K6F/K6D/K65/K20
+/K28/K78/K32/K29
+Figure 8: The estimated network by ICA-LiNGAM and Adaptive Lasso. A re d solid directed edge
+is reasonable to the domain knowledge.
+(Hoyer et al., 2008; Kawahara et al., 2010) or nonlinear relations (Hoy er et al., 2009; Mooij et al.,
+2009) and iv) comparison of our method and related algorithms on many otherreal-world data sets.
+Acknowledgments
+We are very grateful to Hiroshi Hasegawa (College of Science, Ibara ki University, Japan) for pro-
+viding the physics data and Satoshi Hara and Ayumu Yamaoka for interestingdiscussion. We thank
+the three anonymous reviewers whose comments helped to improve the expositio n of the paper.
+This work was partially carried out at Department of Mathematical and Compu ting Sciences and
+Department of Computer Science, Tokyo Institute of Technology, Japan. S.S., Y .K. and T.W. were
+partially supported by MEXT Grant-in-Aid for Young Scientists #21700302, by JSPS Grant-in-Aid
+for Young Scientists #20800019 and by Grant-in-Aid for Scientiﬁc Resea rch (A) #19200013, re-
+spectively. S.S. and Y .K. were partially supported by JSPS Global COE program ‘Computationism
+1244
+==== PAGE 21 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K33/K29
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K31/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K35/K29
+/K4E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20
+/K53/K69/K62/K6C/K69/K6E/K67/K73/K20
+/K28/K78/K36/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K34/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K49/K6E/K63/K6F/K6D/K65/K20
+/K28/K78/K32/K29
+Figure 9: The estimated network by PC algorithm with 5% signiﬁcance level. An u ndirected edge
+between two variables means that there is a directed edge from a variable to th e other or
+the reverse. A red solid directed edge is reasonable to the domain knowledge.
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K33/K29
+/K46/K61/K74/K68/K65/K72 /KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K31/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K45/K64/K75/K63/K61/K74/K69/K6F/K6E/K20
+/K28/K78/K35/K29
+/K4E/K75/K6D/K62/K65/K72/K20/K6F/K66/K20
+/K53/K69/K62/K6C/K69/K6E/K67/K73/K20
+/K28/K78/K36/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K4F/K63/K63/K75/K70/K61/K74/K69/K6F/K6E /K20
+/K28/K78/K34/K29
+/K53/K6F/K6E/KD5 /K73/K20
+/K49/K6E/K63/K6F/K6D/K65/K20
+/K28/K78/K32/K29
+Figure 10: The estimated network by GES. An undirected edge between two v ariables means that
+there is a directed edge from a variable to the other or the reverse. A red s olid directed
+edge is reasonable to the domain knowledge.
+as a Foundation for the Sciences’. A.H. was partially supported by the Academy of Finland Centre
+of Excellence for Algorithmic Data Analysis.
+Appendix A. Adaptive Lasso
+We very brieﬂy review the adaptive Lasso (Zou, 2006), which is a variant of the Lasso (Tibshirani,
+1996). See Zou (2006) for more details. The adaptive Lasso is a regularization technique for variable
+selection and assumes the same data generating process as LiNGAM:
+xi = ∑
+k( j)<k(i)
+bi jx j + ei.
+1245
+==== PAGE 22 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+A big difference is that the adaptive Lasso assumes that the set of such p otential parent variables
+x j that k( j)<k(i) is known and LiNGAM estimates the set of such variables. The adaptive Las so
+penalizes connection strengths bi j in L1 penalty by minimizing the objective function deﬁned as:
+
+
+
+
+xi − ∑
+k( j)<k(i)
+bi jx j
+
+
+
+
+
+2
++ λ ∑
+k( j)<k(i)
+|bi j|
+|ˆbi j|γ ,
+where λ and γ are tuning parameters and ˆbi j is a consistent estimate of bi j. In Zou (2006), it was
+suggested to select the tuning parameters by ﬁve-fold cross validation and to obtain ˆbi j by ordinary
+least squares regression. The adaptive Lasso has a very attractive property that it asymptotically
+selects the right set of such variables x j that bi j is not zero, where k( j)<k(i).
+References
+S. Amari. Natural gradient learning works efﬁciently in learning.Neural Computation, 10:251–276,
+1998.
+F. R. Bach and M. I. Jordan. Kernel independent component analysis. Journal of Machine Learning
+Research, 3:1–48, 2002.
+K. A. Bollen. Structural Equations with Latent Variables. John Wiley & Sons, 1989.
+D. Chickering. Optimal structure identiﬁcation with greedy search. Journal of Machine Learning
+Research, 3:507–554, 2002.
+P. Comon. Independent component analysis, a new concept? Signal Processing, 36:62–83, 1994.
+G. Darmois. Analyse g ´en´erale des liaisons stochastiques. Review of the International Statistical
+Institute, 21:2–8, 1953.
+O. D. Duncan, D. L. Featherman, and B. Duncan. Socioeconomic Background and Achievement.
+Seminar Press, New York, 1972.
+B. Efron and R. Tibshirani. An Introduction to the Bootstrap. Chapman & Hall, New York, 1993.
+J. Eriksson and V . Koivunen. Identiﬁability, separability, and uniquene ss of linear ICA models.
+IEEE Signal Processing Letters, 11:601–604, 2004.
+A. Gretton and L. Gy ¨orﬁ. Consistent nonparametric tests of independence. Journal of Machine
+Learning Research, 11:1391–1423, 2010.
+A. Gretton, O. Bousquet, A. J. Smola, and B. Sch ¨olkopf. Measuring statistical dependence
+with Hilbert-Schmidt norms. In Algorithmic Learning Theory: 16th International Conference
+(ALT2005), pages 63–77. 2005.
+J. Himberg, A. Hyv¨arinen, and F. Esposito. Validating the independent components of neuroimaging
+time-series via clustering and visualization. NeuroImage, 22:1214–1222, 2004.
+1246
+==== PAGE 23 ====
+DIRECT LINGAM: A DIRECT METHOD FOR A LINEAR NON -G AUSSIAN SEM
+P. O. Hoyer, S. Shimizu, A. Kerminen, and M. Palviainen. Estimation of causa l effects using
+linear non-gaussian causal models with hidden variables. International Journal of Approximate
+Reasoning, 49(2):362–378, 2008.
+P. O. Hoyer, D. Janzing, J. Mooij, J. Peters, and B. Sch ¨olkopf. Nonlinear causal discovery with
+additive noise models. In D. Koller, D. Schuurmans, Y . Bengio, and L. Bottou, editors, Advances
+in Neural Information Processing Systems 21, pages 689–696. 2009.
+A. Hyv¨arinen. New approximations of differential entropy for independent component analysis and
+projection pursuit. In Advances in Neural Information Processing Systems , volume 10, pages
+273–279. 1998.
+A. Hyv¨arinen. Fast and robust ﬁxed-point algorithms for independent compo nent analysis. IEEE
+Transactions on Neural Networks, 10:626–634, 1999.
+A. Hyv¨arinen, J. Karhunen, and E. Oja. Independent Component Analysis. Wiley, New York, 2001.
+A. Hyv¨arinen, K. Zhang, S. Shimizu, and P. O. Hoyer. Estimation of a structural vector autoregres-
+sive model using non-Gaussianity. Journal of Machine Learning Research, 11:1709–1731, May
+2010.
+T. Inazumi, S. Shimizu, and T. Washio. Use of prior knowledge in a non-Gaussian method for learn-
+ing linear structural equation models. In Proc. 9th International Conference on Latent Variable
+Analysis and Signal Separation (LVA/ICA2010), pages 221–228, 2010.
+M. Kalisch and P. B ¨uhlmann. Estimating high-dimensional directed acyclic graphs with the PC-
+algorithm. Journal of Machine Learning Research, 8:613–636, 2007.
+Y . Kawahara, K. Bollen, S. Shimizu, and T. Washio. GroupLiNGAM: Linear non-Gaussian acyclic
+models for sets of variables. arXiv:1006.5041, June 2010.
+Y . Kawahara, S. Shimizu, and T. Washio. Analyzing relationships among ARMA processes based
+on non-Gaussianity of external inﬂuences. Neurocomputing, 2011. Forthcoming.
+A. Kraskov, H. St¨ogbauer, and P. Grassberger. Estimating mutual information. Physical Review E,
+69(6):066138, 2004.
+G. Lacerda, P. Spirtes, J. Ramsey, and P. O. Hoyer. Discovering cyc lic causal models by indepen-
+dent components analysis. In Proceedings of the 24th Conference on Uncertainty in Artiﬁcial
+Intelligence (UAI2008), pages 366–374, 2008.
+A. Londei, A. D’Ausilio, D. Basso, and M. O. Belardinelli. A new method for d etecting causality
+in fMRI data of cognitive processing. Cognitive processing, 7(1):42–52, March 2006.
+L. Meirovitch. Elements of Vibration Analysis (2nd ed.). McGraw-Hill, 1986.
+J. Mooij, D. Janzing, J. Peters, and B. Sch ¨olkopf. Regression by dependence minimization and its
+application to causal inference in additive noise models. In Proceedings of the 26th International
+Conference on Machine Learning (ICML2009), pages 745–752, 2009.
+1247
+==== PAGE 24 ====
+SHIMIZU , INAZUMI , SOGAWA, HYV ¨ARINEN , KAWAHARA , WASHIO , HOYER AND BOLLEN
+J. Pearl. Causality: Models, Reasoning, and Inference. Cambridge University Press, 2000. (2nd ed.
+2009).
+R. O. Rhein and K. Strimmer. From correlation to causation networks: a simple a pproximate
+learning algorithm and its application to high-dimensional plant gene express ion data. BMC
+Systems Biology, 1:1–37, 2007.
+S. Shimizu, P. O. Hoyer, A. Hyv¨arinen, and A. Kerminen. A linear non-gaussian acyclic model for
+causal discovery. Journal of Machine Learning Research, 7:2003–2030, 2006.
+S. Shimizu, A. Hyv ¨arinen, Y . Kawahara, and T. Washio. A direct method for estimating a causa l
+ordering in a linear non-gaussian acyclic model. In Proceedings of the 25th Conference on Un-
+certainty in Artiﬁcial Intelligence (UAI2009), Montreal, Canada , pages 506–513. AUAI Press,
+2009.
+R. Silva, R. Scheines, C. Glymour, and P. Spirtes. Learning the structure of linear latent variable
+models. Journal of Machine Learning Research, 7:191–246, Feb 2006.
+K. Sj¨ostrand. Matlab implementation of LASSO, LARS, the elastic net and SPCA, June 2005. URL
+http://www2.imm.dtu.dk/pubdb/p.php?3897. Version 2.0.
+W. P. Skitovitch. On a property of the normal distribution. Doklady Akademii Nauk SSSR , 89:
+217–219, 1953.
+Y . Sogawa, S. Shimizu, Y . Kawahara, and T. Washio. An experimental comparison of linear non-
+Gaussian causal discovery methods and their variants. InProceedings of 2010 International Joint
+Conference on Neural Networks (IJCNN2010), pages 768–775, 2010.
+P. Spirtes and C. Glymour. An algorithm for fast recovery of sparse ca usal graphs. Social Science
+Computer Review, 9:67–72, 1991.
+P. Spirtes, C. Glymour, and R. Scheines.Causation, Prediction, and Search. Springer Verlag, 1993.
+(2nd ed. MIT Press 2000).
+R. Tibshirani. Regression shrinkage and selection via the lasso.Journal of Royal Statistical Society:
+Series B, 58(1):267–288, 1996.
+H. Zou. The adaptive Lasso and its oracle properties. Journal of the American Statistical Associa-
+tion, 101:1418–1429, 2006.
+1248

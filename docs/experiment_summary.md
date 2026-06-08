@@ -53,6 +53,7 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | RENGE timecourse | `experiments/32_renge_timecourse/` | On real time-resolved Perturb-seq, does the knockout response build over days, and does it recover an external network (STRING) above chance and over an observational baseline? |
 | Dynamical baseline benchmark | `experiments/33_dynamical_baseline_benchmark/` | Does the dynamical operator match or beat the established lagged methods (lagged GENIE3, LASSO, correlation) at directed recovery on the same pairs and truth? |
 | Order from static | `experiments/34_order_from_static/` | Can a 1D order be recovered from static geometry (spectral seriation / diffusion), does it help network recovery, and does higher-order correlation capture indirect structure? |
+| Non-Gaussian orientation | `experiments/35_nongaussian_orientation/` | Can edge direction be recovered from static data via non-Gaussianity (LiNGAM), beating symmetric correlation, and which edges are detectable above a null? |
 
 Generated outputs are saved under ignored `results/tables/`.
 
