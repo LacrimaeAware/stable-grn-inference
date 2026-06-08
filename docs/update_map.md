@@ -77,7 +77,10 @@ experiments/27_causalbench_local_edges/local_edges.md
 experiments/28_separability_phase_diagram/separability_phase_diagram.md
 experiments/29_whitened_asymmetry/whitened_asymmetry.md
 experiments/30_dynamical_recovery/dynamical_recovery.md
+experiments/31_boolode_dynamical/boolode_dynamical.md
+experiments/32_renge_timecourse/renge_timecourse.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
+data/raw/renge/                    # ignored; RENGE GSE213069 time-resolved Perturb-seq (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
 private_docs/dev_journal/2026-06-02.md

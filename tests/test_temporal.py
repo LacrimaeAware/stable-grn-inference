@@ -100,5 +100,39 @@ class SystemAndContrastTest(unittest.TestCase):
         self.assertGreater(skel, sys.true_edge_density)      # skeleton is found
 
 
+class PseudotimePairsTest(unittest.TestCase):
+    def test_orders_cells_and_pools_within_columns(self):
+        import pandas as pd
+
+        expr = pd.DataFrame(
+            {"gA": [10.0, 20.0, 30.0, 40.0], "gB": [1.0, 2.0, 3.0, 4.0]},
+            index=["c0", "c1", "c2", "c3"],
+        )
+        # shuffled pseudotime order: c2 < c0 < c3 < c1
+        pt = pd.DataFrame({"PseudoTime": [0.3, 0.9, 0.1, 0.6]}, index=["c0", "c1", "c2", "c3"])
+        from stable_grn_inference.dynamics import pseudotime_ordered_pairs
+
+        X1, X2 = pseudotime_ordered_pairs(expr, pt)
+        self.assertEqual(X1.shape, (3, 2))   # 4 cells -> 3 consecutive pairs
+        # first pair is the two earliest pseudotime cells (c2 then c0)
+        np.testing.assert_allclose(X1[0], [30.0, 3.0])
+        np.testing.assert_allclose(X2[0], [10.0, 1.0])
+
+    def test_two_branches_do_not_cross(self):
+        import pandas as pd
+
+        expr = pd.DataFrame(
+            {"gA": [1.0, 2.0, 3.0, 4.0]}, index=["c0", "c1", "c2", "c3"]
+        )
+        pt = pd.DataFrame(
+            {"b1": [0.1, 0.2, np.nan, np.nan], "b2": [np.nan, np.nan, 0.1, 0.2]},
+            index=["c0", "c1", "c2", "c3"],
+        )
+        from stable_grn_inference.dynamics import pseudotime_ordered_pairs
+
+        X1, X2 = pseudotime_ordered_pairs(expr, pt)
+        self.assertEqual(X1.shape[0], 2)   # one pair per branch, never across
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -273,6 +273,19 @@ Both directions are now implemented with tests (179 in the suite).
   the regime ladder's top rung turned into a controlled, gradeable result, and it is the
   concrete reason Direction B is the live path to a real positive.
 
+- Direction B extended to real-ish and real data. Experiment 31
+  (`experiments/31_boolode_dynamical/`) runs the operator on BoolODE single-cell data (exact
+  truth, BEELINE cell-count sweep): the dynamic operator beats static correlation at directed
+  recovery (0.261 vs 0.210 over 240 datasets), strongly on orderable topologies (linear 0.51 vs
+  0.30) and, as expected, failing on cycles where a single pseudotime ordering is ill-defined.
+  Experiment 32 (`experiments/32_renge_timecourse/`, `src/stable_grn_inference/data/renge.py`)
+  loads the real RENGE time-resolved Perturb-seq (GEO GSE213069, four days, 23 knocked-out TFs,
+  about 360 MB, now local): the knockout response grows over real time (||D|| 2.79 to 3.79 from
+  day 2 to day 5) and the directional net_out ordering is reproducible across days (mean Spearman
+  0.75) and stabilizes (0.92 by day 4 to 5). Directed grading against the RENGE ChIP-seq proxy
+  network is the one remaining step (that network is not in the GEO download; it is in the RENGE
+  repository).
+
 This sharpens the section 0 paper framing: the static recoverability boundary (exp 28) plus a
 dynamical operator that crosses it where static methods cannot (exp 30). The remaining step is
 a real time-resolved dataset above the SNR floor.

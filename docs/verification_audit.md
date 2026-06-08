@@ -1,5 +1,11 @@
 # Verification audit (2026-06-08)
 
+**Verified:** 2026-06-08, ~14:40 EDT. **Scope:** experiments 01–28 and the shared library
+(`src/stable_grn_inference/`), as committed in `024d85a`. This is a point-in-time record so a
+future reader knows when the code and write-ups were last independently checked, without
+having to re-derive it. Experiments 29–30 landed (committed in the same `024d85a`) after this
+pass and are **not** covered here — see Scope below.
+
 An independent end-to-end review of the repository. Every experiment was checked on two
 axes: program correctness (does the code compute what it claims) and design validity (does
 the experiment actually test its stated question, and is the design sound). Write-up numbers
@@ -29,6 +35,11 @@ This audit covers experiments 01–28 and the library they share. Experiments 29
 `next_direction.md` — were created by parallel development while this audit ran; they were
 not part of this review. Their tests pass at the time of writing, but they are in progress
 and unaudited here.
+
+> **TODO — verify on the next pass.** Experiments 29–30 were under active development on
+> 2026-06-08 and have **not** been verified. They (and the resulting counts — the repo now
+> has 30 experiments / 179 tests, while the README still reads 28 / 158) should be audited and
+> reconciled once their development is finished. Until then, treat 29–30 as unverified.
 
 ## Conclusion
 

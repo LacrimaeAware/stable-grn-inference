@@ -150,6 +150,32 @@ def static_correlation_edges(X) -> np.ndarray:
     return np.nan_to_num(C)
 
 
+def pseudotime_ordered_pairs(expression, pseudotime):
+    """Snapshot pairs (X1, X2) by ordering cells along pseudotime, within each trajectory.
+
+    ``expression`` is cells x genes, ``pseudotime`` is cells x trajectories (one or more
+    pseudotime columns, e.g. branches). Within each pseudotime column, cells are sorted and
+    consecutive cells become a (state at t, state at t+1) pair; pairs are pooled across columns
+    so no pair crosses a branch. This turns a pseudotemporally ordered single-cell snapshot into
+    the snapshot pairs a dynamic operator estimate needs. Returns ``(X1, X2)`` arrays.
+    """
+    expr = expression
+    pt = pseudotime
+    n_genes = expr.shape[1]
+    x1_blocks, x2_blocks = [], []
+    for col in pt.columns:
+        order = pt[col].dropna().sort_values()
+        cells = [c for c in order.index if c in expr.index]
+        if len(cells) < 2:
+            continue
+        M = expr.loc[cells].to_numpy(dtype=float)
+        x1_blocks.append(M[:-1])
+        x2_blocks.append(M[1:])
+    if not x1_blocks:
+        return np.zeros((0, n_genes)), np.zeros((0, n_genes))
+    return np.vstack(x1_blocks), np.vstack(x2_blocks)
+
+
 def edges_to_operator(edges: pd.DataFrame, genes) -> np.ndarray:
     """Build a ground-truth operator matrix from a directed edge list.
 

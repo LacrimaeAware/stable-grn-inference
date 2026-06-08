@@ -31,6 +31,14 @@ from .interventional import (
     deconvolve_response,
     operator_edges,
 )
+from .renge import (
+    RENGE_CONTROL_TARGETS,
+    RENGE_DAYS,
+    assign_guides,
+    load_renge_day,
+    load_renge_timecourse,
+    parse_guide_target,
+)
 from .dream4 import (
     SIZE10_DATA_REGIMES,
     SIZE100_DATA_REGIMES,
@@ -72,6 +80,12 @@ __all__ = [
     "propagation_forward",
     "deconvolve_response",
     "operator_edges",
+    "RENGE_CONTROL_TARGETS",
+    "RENGE_DAYS",
+    "assign_guides",
+    "load_renge_day",
+    "load_renge_timecourse",
+    "parse_guide_target",
     "build_tf_to_gene_candidate_edges",
     "infer_expression_orientation",
     "label_candidate_edges",

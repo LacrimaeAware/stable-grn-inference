@@ -29,6 +29,7 @@ from .temporal import (
     dynamical_recovery_grid,
     edges_to_operator,
     make_dynamical_system,
+    pseudotime_ordered_pairs,
     skeleton_recovery_aupr,
     static_correlation_edges,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "dynamical_recovery_grid",
     "edges_to_operator",
     "make_dynamical_system",
+    "pseudotime_ordered_pairs",
     "skeleton_recovery_aupr",
     "static_correlation_edges",
 ]
