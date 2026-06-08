@@ -58,6 +58,7 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | Programs and heterogeneity | `experiments/37_programs_and_heterogeneity/` | Are interpretable gene programs reproducible (NMF vs PCA), and is the single-cell response heterogeneity structured, reproducible, and cell-state-linked? |
 | Heterogeneity audit | `experiments/38_heterogeneity_audit/` | Is exp 37's heterogeneity a technical/global confound (library size, one shared axis), or real knockout-specific structure with a reproducible residual? |
 | Validated programs | `experiments/39_validated_programs/` | After controlling for depth and housekeeping and validating against external STRING coherence, does any real gene program survive? |
+| Identifiability pipeline (forward) | `experiments/40_identifiability_pipeline/` | Parameter identifiability and inference tooling (profile likelihood, Fisher information), validated on a model where transcription/translation rates are non-identifiable from protein alone. |
 
 Generated outputs are saved under ignored `results/tables/`.
 

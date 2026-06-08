@@ -21,6 +21,15 @@ from .separability import (
     separability_grid,
     recoverability_boundary,
 )
+from .identifiability import (
+    fisher_information,
+    fit_mle,
+    identifiability_report,
+    is_identifiable,
+    neg_log_likelihood,
+    profile_likelihood,
+    simulate_mrna_protein,
+)
 from .temporal import (
     DYNAMICAL_METHODS,
     DynamicalSystem,
@@ -45,6 +54,13 @@ __all__ = [
     "recoverability_boundary",
     "DYNAMICAL_METHODS",
     "DynamicalSystem",
+    "fisher_information",
+    "fit_mle",
+    "identifiability_report",
+    "is_identifiable",
+    "neg_log_likelihood",
+    "profile_likelihood",
+    "simulate_mrna_protein",
     "dmd_edges",
     "dmd_operator",
     "dynamical_recovery_grid",

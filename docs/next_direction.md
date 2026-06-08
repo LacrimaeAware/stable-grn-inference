@@ -341,10 +341,10 @@ of experiments 28-32 corrected the earlier framing; this section is the correcte
     GRN method (GENIE3/GRNBoost2) and no directed truth were used.
 
 The single durable, possibly-novel contribution is exp 28's separability phase diagram (the
-rho-vs-SNR decomposition with an SNR floor, RPE1 placed on it; note the reported grid is the
-quick-mode run, 50 genes / 2 seeds, so the SNR-floor threshold is provisional until the full grid
-runs) and the regime-ladder diagnostic framing. These are legitimate negative-results /
-methods-note contributions and do not depend on a method baseline. None of exps 30-32 currently
+rho-vs-SNR decomposition with an SNR floor, RPE1 placed on it; verified on the full grid, 100 genes /
+5 seeds: deflation is rho-invariant and the specific-SNR floor is near 0.2) and the regime-ladder
+diagnostic framing. These are legitimate negative-results / methods-note contributions and do not
+depend on a method baseline. None of exps 30-32 currently
 establishes a novel positive, because none beats an established method, and on DREAM4 the operator
 already loses to lagged GENIE3.
 

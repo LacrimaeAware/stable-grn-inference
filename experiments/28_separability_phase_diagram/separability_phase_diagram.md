@@ -22,7 +22,15 @@ Two knobs: `rho` (dominant-mode variance fraction; RPE1's measured top-1 SVD fra
 
 Four recovery methods rank candidate specific edges: `raw` (`|D|`), `deflate1` (remove the top-1 SVD mode), `program` (subtract the shared response program), `deconv` (ridge inverse `W_hat`). Recovery is AUPR against `W`, chance-normalized to `(AUPR - density)/(1 - density)`. Tooling lives in `src/stable_grn_inference/dynamics/separability.py`; all reused from the existing interventional toolkit.
 
-## Results (quick run: 50 genes, 2 seeds/cell)
+## Results
+
+Verification: the full grid (100 genes, 5 seeds/cell) was re-run and confirms both conclusions.
+Deflation is rho-invariant (recovery about 0.67 across all rho at high SNR), the specific-SNR floor is
+near 0.2 (no method clears below it), deflation is the most robust method over the grid (mean 0.372),
+and RPE1's corner (rho about 0.53, low SNR) reaches only 0.33. The quick-run tables below show the same
+structure at smaller scale.
+
+### Quick run (50 genes, 2 seeds/cell)
 
 Normalized recovery, `raw` (no deflation) — collapses along both axes:
 

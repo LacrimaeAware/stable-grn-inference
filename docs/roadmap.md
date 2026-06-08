@@ -64,6 +64,37 @@ Honest calibration: a modest contribution type, not a high-impact paper, and the
 on execution. But it is well-matched, genuinely open, and tractable, which is more than the
 edge-recovery and structure-discovery directions offered.
 
+## Directions considered (not bulldozed)
+
+All directions on the board, with an honest comparison so the chosen one does not erase the others.
+
+- A. Identifiability / inference of adaptation models (this roadmap). RECOMMENDED first focus. Math/stats
+  fit, collaborator-aligned (Yildirim), individual-scale, low confound risk; the bar is "correct,
+  useful analysis," not beating a baseline.
+- B. Non-additivity / epistasis on combination-perturbation data (Norman et al. 2019). Biologically the
+  more interesting question, but in the crowded ML-benchmark space where simple additive baselines are
+  hard to beat (same wall risk as edge recovery), not collaborator-aligned, and needs new data. A
+  legitimate, separate project; keep it live as the backup, do not pursue simultaneously (one-person
+  focus). The statistical toolkit built for A (identifiability, inference, signal-vs-noise) partly
+  equips B later.
+- Mapped walls (done, negative, documented in research_directions.md and experiment_summary.md): edge
+  recovery (simple correlation/GENIE3 win); structure/program/heterogeneity discovery (collapses to
+  depth/housekeeping/cell-cycle confounds, exp 37-39); dynamical-operator recovery (loses to lagged
+  GENIE3, exp 30-33). These are settled negatives, not options.
+
+Can A and B run at once: they are separate projects (different data, methods, collaborator), so no,
+not without diluting a one-person effort. Focus A; keep B documented.
+
+## Build status
+
+- Step 1 (the identifiability pipeline) is built and validated on a textbook gene-expression model
+  (mRNA -> protein), where transcription and translation rates are provably non-identifiable from
+  protein data alone but identifiable when mRNA is also observed: experiment 40,
+  `src/stable_grn_inference/dynamics/identifiability.py`, tested in `tests/test_identifiability.py`.
+  This proves the tooling is correct before it touches a real model.
+- Step 2 (port to Yildirim's actual 2003 lac-operon DDE) requires his published equations and
+  parameters, to be taken from the paper rather than reconstructed from memory.
+
 ## The quant-to-biology bridge (for step 3, and as a theme)
 
 Stochastic gene-expression noise, parameter inference / identifiability for dynamical models,
