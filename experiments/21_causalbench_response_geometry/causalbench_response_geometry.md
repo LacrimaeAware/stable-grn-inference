@@ -63,8 +63,9 @@ directionality **without any ground truth**: compute the asymmetry-implied direc
 
 **70% agreement vs 50% chance** over ~118k pairs. The interventional direction is a
 *reproducible* property of the data, not an artifact of one sample. This upgrades exp20's
-"decidability 0.61" to verified, stable directionality — the strongest evidence in the whole
-project that intervention recovers real direction. (Quick: 0.74 raw.)
+"decidability 0.61" to a reproducible directionality — the strongest evidence in the project
+that the interventional direction is a stable, sample-independent property, not (absent a
+ground-truth graph) a check that it is the correct one. (Quick: 0.74 raw.)
 
 ### 5. Observational co-expression barely aligns with interventional response (deflationary)
 Spearman between observational |score| (control cells) and interventional |response|:

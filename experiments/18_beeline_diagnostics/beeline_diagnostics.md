@@ -39,8 +39,10 @@ A `--quick` run on GSD alone suggested orientation "collapses to chance." **The 
 - But the spread is large and structural: **GSD collapses** (0.32–0.47, at/below chance),
   while **VSC retains strong orientation** (sparse_cv = **1.00**, fusion = 0.90) and HSC is
   intermediate (0.62–0.74). DREAM4, by contrast, was a tight **0.88–0.96 across the board**.
+  (Denominators are small: VSC and mCAD have only 5 orientable non-reciprocal edges each, HSC
+  14, GSD 40, so the per-network orientation numbers — especially VSC = 1.00 — are low-power.)
 - The GSD collapse has a structural cause: GSD's truth is **heavily reciprocal**
-  (18 of 76 true edges are in bidirectional pairs), so "correct orientation" is partly
+  (18 reciprocal pairs, i.e. 36 of 76 true edges, are bidirectional), so "correct orientation" is partly
   ill-posed there. Where the truth is more acyclic (VSC), orientation is recoverable even
   statically.
 

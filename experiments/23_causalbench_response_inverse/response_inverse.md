@@ -20,11 +20,11 @@ levels. Recovery of the true direct edges (|W| ranked against the true nonzeros)
 
 | noise | inverse AUPR(W) | raw \|D\| AUPR | exact-recovery error |
 | --- | --- | --- | --- |
-| 0% | **1.00** | 0.86 | 0.0 (exact) |
-| 5% | 0.995 | 0.85 | small |
-| 10% | 0.96 | 0.84 | small |
+| 0% | **1.00** | 0.71 | 0.0 (exact) |
+| 5% | 0.99 | 0.71 | small |
+| 10% | 0.96 | 0.70 | small |
 | 25% | 0.89 | 0.70 | moderate |
-| 50% | 0.73 | 0.66 | large |
+| 50% | 0.70 | 0.66 | large |
 
 The inverse recovers the direct edges when the model holds: noiseless recovery is exact, and the inverse beats the raw response at finding direct edges through moderate noise. This is the control for the real-data application.
 

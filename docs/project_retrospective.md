@@ -61,6 +61,7 @@ The task is directed gene regulatory network (GRN) inference: given gene-express
 - The perturbation response is dominated by one component (53% of variance) corresponding to a cell-cycle program (CCNB1, MCM3, RRM2, DNMT1, H2AFZ).
 - Observational scores weakly predict interventional effects (Spearman 0.13 correlation, 0.04 sparse, 0.00 random forest).
 - Inverse deconvolution, low-rank transfer, and a counterfactual feature test each recovered structure on synthetic data and dropped to near-random on RPE1.
+- A synthetic phase diagram with known ground truth (experiment 28) separates two failure axes that the RPE1 negatives had conflated: the dominant-mode variance fraction is removable by deflating a clean rank-1 mode, but the specific signal-to-noise ratio is a hard floor below which no method recovers structure at any dominant-mode fraction. RPE1 sits at high dominant-mode fraction and low specific-SNR, so the bottleneck is the noise floor, not the dominant mode, and removing the cell-cycle program cannot expose a cleaner signal that is not there.
 
 ## Methods that did not transfer to real perturbation data
 
@@ -68,4 +69,4 @@ The cell-cycle program is a convergent response: most knockouts trigger it, so i
 
 ## Related mathematics
 
-The recurring sub-problem (separate a dominant shared mode from small specific structure in dynamic data) is studied directly in several fields: state-space and dynamical-systems models (dx/dt = f(x) + u), Dynamic Mode Decomposition and Koopman operator theory (decomposing dynamics into modes with fixed frequency and growth rate), and SINDy (sparse identification of the governing equations from data). The RPE1 cascade is one instance of subtracting a dominant mode to expose smaller structure.
+The recurring sub-problem (separate a dominant shared mode from small specific structure in dynamic data) is studied directly in several fields: state-space and dynamical-systems models (dx/dt = f(x) + u), Dynamic Mode Decomposition and Koopman operator theory (decomposing dynamics into modes with fixed frequency and growth rate), and SINDy (sparse identification of the governing equations from data). The RPE1 cascade is one instance of subtracting a dominant mode to expose smaller structure. Experiment 28 maps when that subtraction can succeed, on synthetic systems with known answers: deflation removes a dominant mode cleanly only above a specific signal-to-noise floor, and RPE1 sits below it.

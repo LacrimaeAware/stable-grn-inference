@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 27 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq). The repository contains 28 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -75,13 +75,14 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 25    | counterfactual feature test | necessity / sufficiency | recovers synthetic truth; no transfer to RPE1 |
 | 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | essentiality reproducible (0.97), recovers known machinery; cascade position reproducible (0.99), upstream vs downstream separable |
 | 27    | cascade-adjacent edges | ordering distance vs mediation; local edge reproducibility | hypothesis not supported; ordering distance uncorrelated with mediation (-0.06); local restriction lowers reproducibility (0.43 vs 0.81); correlation most reproducible (0.91) |
+| 28    | separability phase diagram | synthetic dominant-mode + specific structure; sweep rho/SNR (ground truth) | two failure axes: dominant-mode fraction (rho) is fixable by deflation, specific-SNR is a hard floor; RPE1 sits at high rho / low SNR, the unrecoverable corner |
 
 ## Reproduce
 
 ```bash
 # Python 3.13, dependencies in requirements.txt
 $env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 145 tests
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 158 tests
 .\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick   # any experiment
 .\.venv\Scripts\python.exe -B docs/figures/make_figures.py             # regenerate figures
 ```
@@ -93,9 +94,9 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 27 experiments, each with a write-up, script, and tests
+├── experiments/                # 28 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
-└── tests/                      # 145 tests, synthetic fixtures only
+└── tests/                      # 158 tests, synthetic fixtures only
 ```
 
 ## Further reading

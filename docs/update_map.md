@@ -12,6 +12,8 @@ Use this as a lightweight checklist for keeping project notes current. Do not up
 | `docs/experiment_summary.md` | A completed experiment changes the cross-experiment interpretation | Central results and conclusions reference |
 | `docs/project_retrospective.md` | Methods or findings summary changes | Methods, statistics reference, and findings by phase |
 | `docs/notes_and_next_steps.md` | Scope, lessons, or planned direction change | Scope, lessons, and planned direction |
+| `docs/next_direction.md` | The synthesized next-direction plan or its weighting changes | Consolidated synthesis of goals, prior findings, and weighted directions after exp 28 |
+| `docs/verification_audit.md` | A full correctness/design audit of the experiments is run | Record of an end-to-end verification pass: method, conclusion, corrections, residual items |
 | `experiments/*/*.md` | An experiment is added, rerun with important results, or limitations change | Local guide for each experiment; use descriptive names, not `README.md` |
 | `docs/update_map.md` | Documentation conventions change | Keeps this checklist useful |
 
@@ -44,6 +46,7 @@ README.md
 docs/project_plan.md
 docs/data_inventory.md
 docs/experiment_summary.md
+docs/next_direction.md
 docs/update_map.md
 experiments/01_dream4_size10_baseline/baseline_comparison.md
 experiments/02_dream4_size10_stability/stability_audit.md
@@ -71,6 +74,9 @@ experiments/24_causalbench_response_generalization/response_generalization.md
 experiments/25_factor_atlas/factor_atlas.md
 experiments/26_causalbench_essentiality/essentiality.md
 experiments/27_causalbench_local_edges/local_edges.md
+experiments/28_separability_phase_diagram/separability_phase_diagram.md
+experiments/29_whitened_asymmetry/whitened_asymmetry.md
+experiments/30_dynamical_recovery/dynamical_recovery.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 results/figures/                   # ignored generated figures (matplotlib)
 private_docs/dev_journal/2026-06-01.md
