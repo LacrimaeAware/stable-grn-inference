@@ -136,6 +136,48 @@ Source caveat: CausalGRN and the STRING-gap paper are preprints; whitening evide
 cell-line co-essentiality, not single-cell; several anchor validations are K562, not RPE1; the
 deep-vs-linear results are a mid-2025 snapshot.
 
+## 9. Recovering order from static data (seriation, diffusion pseudotime)
+
+This corner was researched to ground the idea of rebuilding a latent ordering from static,
+unordered data via the geometry of a similarity matrix and its higher powers, then orienting it
+with a prior. Verified evidence is thin but on-point; the parts marked open are genuinely
+unresolved, not negatively settled.
+
+Verified (Palantir, Setty et al. 2019, Nature Biotechnology, PMC7549125):
+- Diffusion-based pseudotime recovers a 1D ordering of cells from static single-cell snapshots by
+  running a Markov chain on a diffusion-map nearest-neighbor graph, using multiple diffusion
+  components (a generalization of the single Fiedler / second eigenvector).
+- The ordering's direction is NOT recovered from the geometry. The start is fixed by an external
+  prior (a user-supplied "early" cell plus an assumption of one-way progression). This directly
+  confirms the premise "order is recovered, orientation is supplied externally."
+- Useful nuance: the terminal ends CAN be auto-detected from the geometry (boundary cells that are
+  outliers in the chain's stationary distribution). Only the start needs a prior. Auto-detection
+  failed under sparsity in one dataset, so it is not fully robust.
+- Palantir was validated by marker-trend consistency and cross-donor reproducibility, and beat
+  DPT, PAGA, Monocle2, Slingshot, FateID qualitatively. It reported NO quantitative accuracy metric
+  (no correlation against a known timeline). So order-recovery accuracy against truth is, in this
+  source, unmeasured.
+
+Established background math (textbook, not separately verified in this pass): spectral seriation
+recovers a 1D ordering from a symmetric similarity matrix via the Fiedler vector (second
+eigenvector of the Laplacian); for a Robinson similarity matrix the ordering is recovered up to
+reversal (Atkins, Boman, Hendrickson 1998). The reversal ambiguity is exactly "order recovered,
+direction not."
+
+Open (unaddressed by the verified evidence, so untested here, not disproven):
+- Whether higher-order / iterated correlation (correlation of correlation profiles, von Neumann
+  diffusion, network propagation on a gene-gene graph) captures real indirect A->C->D structure or
+  mostly inflates spurious transitive edges.
+- Whether pseudotime / ordering-based GRN methods (SCODE, SINCERITIES, LEAP, GENIE3 on
+  pseudotime-ordered cells) beat static co-expression baselines on BEELINE. The project's core
+  motivating question; no verified quantitative answer. The field has not clearly shown a win.
+
+Implication: the idea of recovering an order from static geometry is real and established
+(diffusion pseudotime). The open part, and the only place a fresh result could come from, is
+(a) quantifying order-recovery accuracy against truth (which Palantir skipped) and (b) testing
+whether the recovered order actually improves network recovery over static co-expression. Both are
+testable on BoolODE, which has a true ordering and a true network. Sources: PMC7549125 (Palantir).
+
 ## 8. Net implications for this project
 
 - The interventional-asymmetry idea is validated and already implemented by others on RPE1; the

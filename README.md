@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 33 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 34 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -60,6 +60,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 - exp 29. Whitened interventional asymmetry. Tests whether reproducible pairwise asymmetry survives beyond the per-gene axes and whether whitening the dominant mode helps. On the synthetic control, whitening does not help; not yet run on real RPE1.
 - exp 30 to 32. Dynamical recovery with a time axis (synthetic VAR, DREAM4, BoolODE single-cell, real RENGE time-resolved Perturb-seq, GEO GSE213069). A dynamical operator orients edges a symmetric static statistic cannot, and on real RENGE data the knockout response builds over four days while its directional ordering stays reproducible (cross-day Spearman 0.75).
 - exp 33. Benchmark against established methods. Graded against lagged GENIE3, lagged LASSO, and lagged correlation on the same pairs and truth, the dynamical operator does not win: it ranks last on DREAM4 (directed AUPR 0.37 vs lagged GENIE3 0.54) and mid-pack on BoolODE (0.41 vs lagged LASSO 0.45). The operator is not the method of choice. The durable contribution of this phase is the exp 28 diagnostic and the regime-ladder framing, not a new method.
+- exp 34. Recover an order from static data (spectral seriation / diffusion pseudotime), and ask whether it helps. On BoolODE (true order and true network known), the geometry recovers the true 1D order at absolute Spearman 0.83 (well on orderable trajectories, 0.96 linear; poorly on cycles, 0.55), but a plain top-principal-component baseline ties it (0.82), the recovered order does not beat static correlation at network recovery (0.35 vs 0.36; even the true-order oracle only reaches 0.38), and higher-order/iterated correlation adds spurious edges (direct correlation 0.65 beats its square 0.52 and second-order 0.59). Order is recoverable from static data; it does not improve network recovery here.
 
 ## Experiment log
 
@@ -85,13 +86,14 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 29    | whitened asymmetry | residual-asymmetry reproducibility, whitening sweep | whitening does not help (best alpha 0); synthetic control only, not yet real RPE1 |
 | 30-32 | dynamical recovery | DMD operator vs static; DREAM4, BoolODE, real RENGE timecourse | operator orients where static cannot; RENGE response builds over days, ordering reproducible 0.75 |
 | 33    | dynamical baseline benchmark | DMD vs lagged GENIE3/LASSO/correlation, same pairs and truth | no benchmarked win: last on DREAM4 (0.37 vs 0.54), 2nd on BoolODE (0.41 vs 0.45) |
+| 34    | order from static | spectral / diffusion order recovery; does order help; higher-order correlation | order recovered (Spearman 0.83) but ties PC1 (0.82); does not beat static for the network (0.35 vs 0.36); higher-order correlation adds spurious edges |
 
 ## Reproduce
 
 ```bash
 # Python 3.13, dependencies in requirements.txt
 $env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 187 tests
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 196 tests
 .\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick   # any experiment
 .\.venv\Scripts\python.exe -B docs/figures/make_figures.py             # regenerate figures
 ```
@@ -103,9 +105,9 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 33 experiments, each with a write-up, script, and tests
+├── experiments/                # 34 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
-└── tests/                      # 187 tests, synthetic fixtures only
+└── tests/                      # 196 tests, synthetic fixtures only
 ```
 
 ## Further reading

@@ -9,6 +9,16 @@ from .asymmetry import (
     response_asymmetry,
     response_magnitude,
 )
+from .ordering import (
+    cell_similarity,
+    correlation_power,
+    diffusion_order,
+    network_propagation,
+    order_recovery_score,
+    orient_by_root,
+    second_order_correlation,
+    spectral_order,
+)
 from .factor_atlas import (
     FactorAtlasData,
     counterfactual_necessity_sufficiency,
@@ -20,6 +30,14 @@ from .factor_atlas import (
 
 __all__ = [
     "FactorAtlasData",
+    "cell_similarity",
+    "correlation_power",
+    "diffusion_order",
+    "network_propagation",
+    "order_recovery_score",
+    "orient_by_root",
+    "second_order_correlation",
+    "spectral_order",
     "antisymmetric_lift",
     "counterfactual_necessity_sufficiency",
     "discover_factor_directions",
