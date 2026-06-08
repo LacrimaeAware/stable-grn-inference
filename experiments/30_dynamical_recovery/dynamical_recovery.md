@@ -2,10 +2,11 @@
 
 > Correction (methodology audit). The comparison here is against a SYMMETRIC static baseline that
 > cannot orient an edge by construction, so beating it at a directed task is guaranteed and
-> uninformative about method quality. On DREAM4 the operator's 0.37 directed AUPR RANKS LAST of the
+> uninformative about method quality. On DREAM4 the operator's 0.37 directed AUPR ranks below the
 > established lagged methods already run on the identical networks in exp 7 (lagged GENIE3 RF 0.53,
-> GENIE3 ET 0.53, LASSO 0.51/0.49, correlation 0.46). This is a controlled demonstration that time
-> order enables orientation, not a benchmarked positive. The benchmarked head-to-head is exp 33.
+> GENIE3 ET 0.53, LASSO 0.51/0.49, correlation 0.46), and below the project's own earlier DREAM4
+> results (0.65 with the self-edge, exp 8/9). This is a controlled demonstration that time order
+> enables orientation, not a benchmarked positive. The benchmarked head-to-head is exp 33.
 
 Direction B from `docs/next_direction.md`. The frontier where a positive result can exist:
 recover directed structure that a static snapshot cannot, by using a time axis, graded

@@ -54,6 +54,44 @@ data-selection criterion. That is workshop-paper, methods-note, or preprint
 territory, not a top-venue method-beats-SOTA paper. It is the level this project
 operates at, and it is real.
 
+## 0b. Relation to the original idea, and the role of each dataset
+
+Plain reconciliation, to keep the threads straight.
+
+The original idea was pairwise response geometry: nonlinear functions of perturbation-response
+differences D_gh = Delta_g - Delta_h across perturbations, to find dynamic or nonlinear structure.
+What became of it: the specific object Delta_g - Delta_h is mostly circular (section 3), and the
+one part that is genuinely pairwise, the response-matrix asymmetry A = M - M^T, is what exp 29
+tested. Exp 29 did not beat the per-gene axes (net_out, magnitude) it is built on. So the original
+object did not yield a new signal; the asymmetry it pointed at is real but already measured by
+net_out (exp 26). The intuition kept pointing at real structure; that structure was already captured.
+
+The dynamical line (exps 30-33) is a SEPARATE thread, not the pairwise idea. The dynamical operator
+(DMD) is the simplest time method: fit one matrix A so expression at t+1 is approximately A times
+expression at t; the off-diagonal entries are candidate directed edges, and it needs a time axis. It
+is the same family as lagged regression (exp 7); in fact it is the plain, un-regularized version of
+what exp 7 already did with GENIE3 and LASSO, so testing it overlaps the DREAM4 time-series work
+already done.
+
+DREAM4 number context (to avoid confusion): on DREAM4 Size10 the project already reached AUPR 0.65
+with a dynamic sparse model including the self-edge (exp 8/9), 0.53 with lagged GENIE3 on non-self
+edges (exp 7), and correlation 0.33 on the static multifactorial data (exp 1). The dynamical
+operator's 0.37 (exp 33, non-self) is below the project's own earlier DREAM4 results, so it is not a
+new high.
+
+What each dataset is for:
+- DREAM4 (simulated, time-series, exact truth): the clean validation testbed; characterized in exps
+  1-14.
+- BEELINE / BoolODE (simulated single-cell, pseudotime, exact truth): the single-cell version with
+  exact truth and a cell-count knob.
+- RPE1 (real CRISPR, static snapshot, no time axis, no clean truth): the hard real problem (the
+  dominant cascade).
+- RENGE (real CRISPR, time-resolved): real data that has the time axis RPE1 lacks.
+
+These vary simulated-vs-real and static-vs-time. The risk this raised, which the dynamical line
+realized, is breadth of datasets without a method that has a reason to beat the established
+baselines.
+
 ## 1. Theme
 
 The durable interest is not gene biology. It is: **recover stable hidden
@@ -273,10 +311,10 @@ of experiments 28-32 corrected the earlier framing; this section is the correcte
   - On synthetic VAR(1), the operator reaches 0.705 normalized directed recovery vs 0.117 for the
     symmetric static baseline: a controlled demonstration that a time-using operator orients edges
     a symmetric snapshot cannot, not an independent positive.
-  - On DREAM4 Size10 time-series the operator reaches directed AUPR 0.37, which RANKS LAST of the
-    methods this project already ran on the identical networks and pairs in exp 7: lagged GENIE3
-    RF 0.53, GENIE3 ET 0.53, LASSO 0.51 / 0.49, lagged correlation 0.46. It beats only the static
-    (unorientable) baseline and underperforms every established lagged method.
+  - On DREAM4 Size10 time-series the operator reaches directed AUPR 0.37, which ranks below all the
+    lagged methods this project already ran on the identical networks and pairs in exp 7: lagged
+    GENIE3 RF 0.53, GENIE3 ET 0.53, LASSO 0.51 / 0.49, lagged correlation 0.46. It beats only the
+    static baseline, which cannot orient, and is below every established lagged method.
 
   - On BoolODE single-cell (exp 31) the operator beats the static baseline on 4 of 6 topologies
     (orderable trajectories); it LOSES on cycles (0.028 vs 0.161) and trifurcating branches
@@ -311,7 +349,8 @@ BoolODE single-cell: the operator is mid-pack, 2nd of four (DMD 0.41; lagged LAS
 GENIE3 0.40, correlation 0.40). There is no benchmarked win on either dataset; the established lagged
 methods match or beat the operator. The dynamical line therefore has no novel positive, and its
 durable contribution is the exp 28 separability diagnostic and the regime-ladder framing. The
-operator's earlier "positives" were artifacts of the symmetric static strawman baseline.
+operator's earlier "positives" came only from comparing to a symmetric baseline that cannot orient
+edges, and on the time-series data the established lagged methods already do better.
 
 ## 5b. Direction B datasets (verified scout, ranked)
 
