@@ -85,6 +85,7 @@ experiments/32_renge_timecourse/renge_timecourse.md
 experiments/33_dynamical_baseline_benchmark/dynamical_baseline_benchmark.md
 experiments/34_order_from_static/order_from_static.md
 experiments/35_nongaussian_orientation/nongaussian_orientation.md
+experiments/36_queued_directions/queued_directions.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 data/raw/renge/                    # ignored; RENGE GSE213069 time-resolved Perturb-seq (not committed)
 data/raw/trrust/                   # ignored; TRRUST directed TF-target network (not committed)

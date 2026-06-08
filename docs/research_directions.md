@@ -96,5 +96,17 @@ graded against truth on BoolODE/DREAM4 and against the standing baselines.
   separates signal from pure noise but not direct edges from indirect. It quantifies the per-edge SNR
   floor honestly.
 
-Queued and not yet run: direction 3 (two-stage focus-then-refine), 5 (cycle 2D geometry), 6
-(diversity-consensus). Each must clear the standing baselines (correlation, GENIE3) on truth.
+Directions 5 and 6 ran in exp 36. Direction 6 (diversity-consensus): negative, the consensus does not
+beat the best single lens (0.64 vs mutual information 0.67); the lenses agree, so combining them
+re-finds the same skeleton. Direction 5 (cycle 2D geometry): a narrow win for the intuition, the 2D
+embedding recovers the actual cycle's order (dyn-CY 0.80 vs 1D 0.55) while correctly failing on
+branching trees; geometry must match topology. Direction 3 (two-stage focus-then-refine) remains
+unrun; its expensive second stage would be LiNGAM, which exp 35 showed fails on this data, so its
+prior is poor.
+
+Standing conclusion after exps 28-36: simple correlation / GENIE3 / self-persistence is not beaten on
+real directed-edge recovery by any direction tried (dynamical, ordering, higher-order, non-Gaussian,
+consensus), consistent with the literature. The intuitions repeatedly map onto real, provably-correct
+methods (seriation, diffusion pseudotime, LiNGAM, cycle geometry) and work in principle, but do not
+beat the simple baselines on real data. The reframe (toward interpretable program/structure discovery,
+where exp 26 already shows reproducible signal) is the next pivot.
