@@ -88,6 +88,7 @@ experiments/35_nongaussian_orientation/nongaussian_orientation.md
 experiments/36_queued_directions/queued_directions.md
 experiments/37_programs_and_heterogeneity/programs_and_heterogeneity.md
 experiments/38_heterogeneity_audit/heterogeneity_audit.md
+experiments/39_validated_programs/validated_programs.md
 data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
 data/raw/renge/                    # ignored; RENGE GSE213069 time-resolved Perturb-seq (not committed)
 data/raw/trrust/                   # ignored; TRRUST directed TF-target network (not committed)

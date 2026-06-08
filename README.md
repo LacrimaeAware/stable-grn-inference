@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 38 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 39 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -92,6 +92,7 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 36    | queued directions | diversity-consensus; cycle 2D geometry | consensus does not beat the best single lens (0.64 vs 0.67); 2D recovers the actual cycle's order (0.80 vs 1D 0.55) but not branching trees |
 | 37    | programs and heterogeneity (reframe) | NMF vs PCA program reproducibility; single-cell heterogeneity | NMF programs more reproducible than PCA, but the dominant program is the ribosomal/depth axis; the heterogeneity "result" was a technical confound (corrected by exp 38) |
 | 38    | heterogeneity audit | confound / knockout-specificity / residual tests | exp 37's heterogeneity is library size (corr 0.85) and one global axis (cosine 0.81); no reproducible knockout-specific residual (0.37). A clean negative, honestly |
+| 39    | validated programs | depth + housekeeping controls; external STRING coherence | the one program passing the automated filter is housekeeping (GAPDH/ACTB); no specific, externally-coherent, non-housekeeping program survives. Negative |
 
 ## Reproduce
 
@@ -110,7 +111,7 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 38 experiments, each with a write-up, script, and tests
+├── experiments/                # 39 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
 └── tests/                      # 207 tests, synthetic fixtures only
 ```
