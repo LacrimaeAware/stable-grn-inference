@@ -55,6 +55,7 @@ DREAM4 Size100 time-series has now been used for a scaling audit (experiment 10)
 | Order from static | `experiments/34_order_from_static/` | Can a 1D order be recovered from static geometry (spectral seriation / diffusion), does it help network recovery, and does higher-order correlation capture indirect structure? |
 | Non-Gaussian orientation | `experiments/35_nongaussian_orientation/` | Can edge direction be recovered from static data via non-Gaussianity (LiNGAM), beating symmetric correlation, and which edges are detectable above a null? |
 | Queued directions | `experiments/36_queued_directions/` | Does diversity-consensus across lenses beat the best single lens, and does a 2D embedding recover cyclic order where 1D fails? |
+| Programs and heterogeneity | `experiments/37_programs_and_heterogeneity/` | Are interpretable gene programs reproducible (NMF vs PCA), and is the single-cell response heterogeneity structured, reproducible, and cell-state-linked? |
 
 Generated outputs are saved under ignored `results/tables/`.
 

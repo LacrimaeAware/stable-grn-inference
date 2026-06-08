@@ -133,6 +133,51 @@ def load_renge_day(
     return expr_df, label_series
 
 
+def load_renge_day_hvg(
+    day_dir: str | Path,
+    *,
+    n_hvg: int = 1000,
+    min_umi: int = 1,
+    dominance: float = 2.0,
+):
+    """Load a RENGE day as ``(expression, perturbation_labels)`` over the top high-variance genes.
+
+    Unlike :func:`load_renge_day` (which keeps only the perturbed transcription factors), this keeps
+    the ``n_hvg`` most variable gene-expression features for program discovery and heterogeneity
+    analysis. Per-gene variance is computed from the sparse matrix without densifying; only the
+    selected columns are materialized, then per-cell normalized to the median UMI and log1p.
+    """
+    matrix, features, barcodes = _read_10x(Path(day_dir))
+    is_guide = (features["type"] == GUIDE_TYPE).to_numpy()
+    gene_rows = np.where(~is_guide)[0]
+    guide_rows = np.where(is_guide)[0]
+
+    guide_targets = np.array([parse_guide_target(n) for n in features["name"].to_numpy()[guide_rows]])
+    guide_counts = np.asarray(matrix[guide_rows].todense()).T
+    labels = assign_guides(guide_counts, guide_targets, min_umi=min_umi, dominance=dominance)
+
+    G = matrix[gene_rows]
+    n_cells = G.shape[1]
+    s = np.asarray(G.sum(axis=1)).ravel()
+    s2 = np.asarray(G.multiply(G).sum(axis=1)).ravel()
+    var = s2 / n_cells - (s / n_cells) ** 2
+    top = np.argsort(var)[::-1][:n_hvg]
+    sel_rows = gene_rows[top]
+    sel_syms = features["name"].to_numpy()[sel_rows]
+
+    total_umi = np.asarray(matrix[gene_rows].sum(axis=0)).ravel().astype(float)
+    median_umi = float(np.median(total_umi[total_umi > 0])) if np.any(total_umi > 0) else 1.0
+    sub = np.asarray(matrix[sel_rows].todense()).T.astype(float)
+    scale = np.divide(median_umi, total_umi, out=np.ones_like(total_umi), where=total_umi > 0)
+    expr = np.log1p(sub * scale[:, None])
+
+    keep = labels != "unassigned"
+    cols = [str(g) for g in sel_syms]
+    expr_df = pd.DataFrame(expr[keep], columns=cols, index=[b for b, k in zip(barcodes, keep) if k])
+    label_series = pd.Series(labels[keep], index=expr_df.index, name="perturbation")
+    return expr_df, label_series
+
+
 def load_renge_timecourse(
     root: str | Path,
     *,

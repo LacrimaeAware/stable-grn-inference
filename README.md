@@ -1,6 +1,6 @@
 # stable-grn-inference
 
-Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 36 experiments, each with its script, generated results, and a write-up.
+Gene regulatory network (GRN) inference tested across three data types: a simulated benchmark (DREAM4), static single-cell data (BEELINE), and CRISPR perturbation data (CausalBench / Replogle RPE1 Perturb-seq), plus a time-resolved line (DREAM4, BoolODE, and RENGE single-cell time courses). The repository contains 37 experiments, each with its script, generated results, and a write-up.
 
 ## Scope
 
@@ -90,13 +90,14 @@ Knockout of most essential genes triggers a convergent cell-cycle arrest program
 | 34    | order from static | spectral / diffusion order recovery; does order help; higher-order correlation | order recovered (Spearman 0.83) but ties PC1 (0.82); does not beat static for the network (0.35 vs 0.36); higher-order correlation adds spurious edges |
 | 35    | non-Gaussian orientation | LiNGAM direction-from-static; detectability map | orients a planted chain but fails on BoolODE (0.29 vs correlation 0.36; worse on acyclic, unchanged at 5000 cells); detectability separates signal from noise but not direct from indirect |
 | 36    | queued directions | diversity-consensus; cycle 2D geometry | consensus does not beat the best single lens (0.64 vs 0.67); 2D recovers the actual cycle's order (0.80 vs 1D 0.55) but not branching trees |
+| 37    | programs and heterogeneity (reframe) | NMF vs PCA program reproducibility; single-cell response heterogeneity | NMF programs reproducible (0.95) and beat PCA; per-cell response heterogeneity is structured (0.20), reproducible (0.73), and cell-state-aligned (0.89) on real RENGE cells |
 
 ## Reproduce
 
 ```bash
 # Python 3.13, dependencies in requirements.txt
 $env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 201 tests
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 213 tests
 .\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick   # any experiment
 .\.venv\Scripts\python.exe -B docs/figures/make_figures.py             # regenerate figures
 ```
@@ -108,9 +109,9 @@ Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test s
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis
-├── experiments/                # 36 experiments, each with a write-up, script, and tests
+├── experiments/                # 37 experiments, each with a write-up, script, and tests
 ├── docs/                       # reports and figures
-└── tests/                      # 201 tests, synthetic fixtures only
+└── tests/                      # 213 tests, synthetic fixtures only
 ```
 
 ## Further reading

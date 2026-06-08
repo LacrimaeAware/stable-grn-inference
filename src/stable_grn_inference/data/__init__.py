@@ -40,6 +40,7 @@ from .renge import (
     RENGE_DAYS,
     assign_guides,
     load_renge_day,
+    load_renge_day_hvg,
     load_renge_timecourse,
     parse_guide_target,
 )
@@ -90,6 +91,7 @@ __all__ = [
     "RENGE_DAYS",
     "assign_guides",
     "load_renge_day",
+    "load_renge_day_hvg",
     "load_renge_timecourse",
     "parse_guide_target",
     "build_tf_to_gene_candidate_edges",

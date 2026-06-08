@@ -110,3 +110,18 @@ consensus), consistent with the literature. The intuitions repeatedly map onto r
 methods (seriation, diffusion pseudotime, LiNGAM, cycle geometry) and work in principle, but do not
 beat the simple baselines on real data. The reframe (toward interpretable program/structure discovery,
 where exp 26 already shows reproducible signal) is the next pivot.
+
+## The reframe result (exp 37): the first clean positive on real data
+
+Beyond edge recovery, exp 37 (RENGE day 5, real single-cell cells) delivered a genuine positive at the
+reproducibility/interpretability bar:
+- Program atlas: NMF gene programs are reproducible across independent cells (up to 0.95) and beat the
+  PCA baseline (0.88 vs 0.66 at k=20). The structured method wins at the bar that matters here.
+- Single-cell response heterogeneity (the "ripples"): the per-cell deviation from each knockout's mean
+  response is structured (0.20 of residual variance in one direction), reproducible (0.73 across cell
+  halves), and interpretable (0.89 alignment with the cell-state axis). Cells do not respond by the
+  population mean; the deviation tracks cell state.
+- Honest caveat and the next experiment: the heterogeneity is largely the cell-state axis. The novel
+  open question is the RESIDUAL, after removing cell state, is there reproducible knockout-SPECIFIC
+  heterogeneity (a ripple beyond the cell-cycle mode)? That is exp 38, the ripple question one level
+  deeper, and the genuinely novel target.

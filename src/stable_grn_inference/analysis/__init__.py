@@ -9,6 +9,13 @@ from .asymmetry import (
     response_asymmetry,
     response_magnitude,
 )
+from .programs import (
+    discover_programs,
+    heterogeneity_structure,
+    match_programs,
+    program_reproducibility,
+    residual_heterogeneity,
+)
 from .nongaussian import (
     edge_detectability,
     nongaussian_directed_edges,
@@ -36,6 +43,11 @@ from .factor_atlas import (
 
 __all__ = [
     "FactorAtlasData",
+    "discover_programs",
+    "heterogeneity_structure",
+    "match_programs",
+    "program_reproducibility",
+    "residual_heterogeneity",
     "edge_detectability",
     "nongaussian_directed_edges",
     "nongaussianity",
