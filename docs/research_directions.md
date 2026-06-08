@@ -111,17 +111,25 @@ methods (seriation, diffusion pseudotime, LiNGAM, cycle geometry) and work in pr
 beat the simple baselines on real data. The reframe (toward interpretable program/structure discovery,
 where exp 26 already shows reproducible signal) is the next pivot.
 
-## The reframe result (exp 37): the first clean positive on real data
+## The reframe result (exp 37 then audited by exp 38): a confound, not a positive
 
-Beyond edge recovery, exp 37 (RENGE day 5, real single-cell cells) delivered a genuine positive at the
-reproducibility/interpretability bar:
-- Program atlas: NMF gene programs are reproducible across independent cells (up to 0.95) and beat the
-  PCA baseline (0.88 vs 0.66 at k=20). The structured method wins at the bar that matters here.
-- Single-cell response heterogeneity (the "ripples"): the per-cell deviation from each knockout's mean
-  response is structured (0.20 of residual variance in one direction), reproducible (0.73 across cell
-  halves), and interpretable (0.89 alignment with the cell-state axis). Cells do not respond by the
-  population mean; the deviation tracks cell state.
-- Honest caveat and the next experiment: the heterogeneity is largely the cell-state axis. The novel
-  open question is the RESIDUAL, after removing cell state, is there reproducible knockout-SPECIFIC
-  heterogeneity (a ripple beyond the cell-cycle mode)? That is exp 38, the ripple question one level
-  deeper, and the genuinely novel target.
+Exp 37 (RENGE day 5, real cells) at first looked like a positive: NMF programs reproducible (0.95,
+beating PCA), and per-cell response heterogeneity structured (0.20), reproducible (0.73), and
+cell-state-aligned (0.89). It was audited in exp 38 and did NOT hold:
+- The heterogeneity axis correlates with raw library size at 0.85 (detected genes 0.96): it is
+  sequencing depth, a technical confound.
+- All 23 knockouts share one global deviation axis (pairwise cosine 0.81): not knockout-specific,
+  trivial.
+- After removing library size and the global axis, the residual is not reproducible (0.37) and not
+  knockout-specific. No biological ripple survives.
+
+So exp 37's heterogeneity was a technical / global artifact, expected, not a discovery. The NMF-beats-PCA
+program point stands as mild and methodological, but the dominant program is the ribosomal/depth axis,
+so its biological reading is undercut too.
+
+The real, durable lesson (and the standing bar): internal reproducibility is NOT evidence of biology,
+because technical axes (library size) are highly reproducible. Any structure claim must (a) be checked
+against depth/technical confounds, (b) show specificity (knockout-specificity here), and (c) validate
+against EXTERNAL biology (pathway/complex enrichment), not just internal recurrence. The audit (exp 38)
+is the reusable contribution; the reframe is still a valid compass, but the bar is now external
+validation, not reproducibility alone.

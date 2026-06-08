@@ -1,5 +1,16 @@
 # Experiment 37: interpretable programs and single-cell response heterogeneity (RENGE)
 
+> Correction (audit, exp 38). The Part B heterogeneity result below does NOT hold up. The audit
+> (exp 38) showed the heterogeneity axis correlates with raw library size at 0.85 (detected genes
+> 0.96), all 23 knockouts share one global axis (pairwise cosine 0.81), and no reproducible
+> knockout-specific residual survives removing depth and the global axis (residual reproducibility
+> 0.37). So the "structured, reproducible, cell-state-aligned heterogeneity" was a technical / global
+> confound (sequencing depth), not a discovery. Part A (NMF programs more reproducible than PCA)
+> stands as a mild methodological point, but its dominant program is the ribosomal / depth axis, so
+> its biological reading is also undercut. The lesson: internal reproducibility is not enough, it
+> reproduces technical axes too; real signal must validate against external biology. Read this
+> experiment together with exp 38.
+
 The reframe, both directions in one pass on real single-cell CRISPR data (RENGE day 5, 5,693 cells,
 1,500 high-variance genes, 23 knocked-out TFs). The bar here is reproducibility and meaning, not
 beating GENIE3 on edges. RPE1 was not present in this tree, so RENGE day 5 (real cells) is the

@@ -139,6 +139,7 @@ def load_renge_day_hvg(
     n_hvg: int = 1000,
     min_umi: int = 1,
     dominance: float = 2.0,
+    return_total_umi: bool = False,
 ):
     """Load a RENGE day as ``(expression, perturbation_labels)`` over the top high-variance genes.
 
@@ -173,8 +174,12 @@ def load_renge_day_hvg(
 
     keep = labels != "unassigned"
     cols = [str(g) for g in sel_syms]
-    expr_df = pd.DataFrame(expr[keep], columns=cols, index=[b for b, k in zip(barcodes, keep) if k])
+    kept_barcodes = [b for b, k in zip(barcodes, keep) if k]
+    expr_df = pd.DataFrame(expr[keep], columns=cols, index=kept_barcodes)
     label_series = pd.Series(labels[keep], index=expr_df.index, name="perturbation")
+    if return_total_umi:
+        depth = pd.Series(total_umi[keep], index=kept_barcodes, name="total_umi")
+        return expr_df, label_series, depth
     return expr_df, label_series
 
 
