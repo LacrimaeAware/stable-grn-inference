@@ -178,6 +178,44 @@ Implication: the idea of recovering an order from static geometry is real and es
 whether the recovered order actually improves network recovery over static co-expression. Both are
 testable on BoolODE, which has a true ordering and a true network. Sources: PMC7549125 (Palantir).
 
+## 10. Beyond edge recovery: what the field values (the reframe)
+
+Researched to find a goal other than directed-edge recovery. Verification abstained on most claims
+this round (only the GEARS capability claim survived 3-vote at 2-0), so treat the rest as consistent
+across independent sources but not individually confirmed.
+
+- Perturbation-effect PREDICTION has the same wall as edge recovery. Across PerturBench
+  (arXiv:2408.10609), scPerturb / scPerturBench (Nat Methods s41592-025-02980-0), and Nat Methods
+  2025 (s41592-025-02772-6), sophisticated deep predictors (GEARS, CPA, scGen, SAMS-VAE, BioLord,
+  foundation models) do NOT reliably beat simple baselines (latent-additive, linear, or mean
+  prediction); for double perturbations a plain additive baseline (sum of single-gene effects) often
+  wins. One source (biorxiv 2024.12.23.630036) contests this. So pivoting to prediction-for-accuracy
+  hits the same wall.
+- The valued contribution is CAPABILITY, not accuracy. GEARS' framed novelty (verified 2-0) is
+  generalization to UNSEEN perturbations, predicting the outcome of gene combinations where both
+  genes were never perturbed, by extrapolating through a gene knowledge graph. The field rewards
+  methods that extrapolate to unseen perturbations/contexts, not ones that fit seen data better.
+- Program / factor discovery is a separately-valued, tractable deliverable. cNMF (consensus NMF),
+  MOFA, and recurrent metaprograms are judged by pathway/GO enrichment and cross-dataset RECURRENCE,
+  not predictive accuracy, and these methods CAN beat simple clustering baselines. Interpretable
+  factor structure is a publishable contribution on its own. This is the structured-transform idea
+  applied to genes.
+- scPerturb contributes the E-distance / E-test (energy distance): a standardized statistic for the
+  MAGNITUDE and significance of a perturbation effect, a characterization tool rather than an
+  edge-recovery method.
+- The recurring OPEN problem, flagged as tractable for a small team: generalization to unseen
+  cellular contexts/perturbations, and the failure of current models to capture HETEROGENEOUS
+  single-cell responses rather than the population average. The per-cell deviation from the mean
+  response is exactly the "small ripples under the dominant mode" intuition, and it is the stated
+  frontier.
+
+Implication: the reframe with signal is interpretable program/structure discovery (validated by
+reproducibility and external enrichment, where the bar is not beating GENIE3 on edges) and, more
+ambitiously, characterizing single-cell response heterogeneity (the field's open problem, and the
+"ripples" intuition). Both use the project's existing response-geometry and anchor tooling. Sources:
+arXiv:2408.10609; Nat Methods s41592-025-02980-0, s41592-025-02772-6; GEARS (Nat Biotechnol
+s41587-023-01905-6, PMC11180609); biorxiv 2024.12.23.630036.
+
 ## 8. Net implications for this project
 
 - The interventional-asymmetry idea is validated and already implemented by others on RPE1; the
