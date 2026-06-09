@@ -9,8 +9,8 @@
 > enables orientation, not a benchmarked positive. The benchmarked head-to-head is exp 33.
 
 Direction B from `docs/next_direction.md`. The frontier where a positive result can exist:
-recover directed structure that a static snapshot cannot, by using a time axis, graded
-against ground truth.
+recover directed structure that a symmetric (second-order) statistic cannot, by using a time axis,
+graded against ground truth.
 
 ## Question
 

@@ -7,7 +7,7 @@
 > (lagged GENIE3, the BEELINE leaderboard) was compared. Not a benchmarked positive; see exp 33.
 
 Direction B on real-ish single-cell data. Experiment 30 showed a dynamic operator recovers
-directed structure a static snapshot cannot, on synthetic dynamics and DREAM4. This runs the
+directed structure a symmetric statistic cannot, on synthetic dynamics and DREAM4. This runs the
 same test on BoolODE single-cell expression (BEELINE), which has a pseudotime axis, an exact
 generating network, and a built-in cell-count sweep (the sample-size / SNR axis of exp 28).
 

@@ -290,7 +290,7 @@ separation itself where the answer is generated and gradeable.
   effort (specific-SNR above the floor, not merely low dominant-mode fraction).
 - **Calibrated value: higher long-term.** It is the one place a method can be
   validated, and where the cascade/asymmetry instinct can be tested non-circularly
-  — time supplies a real arrow that a static snapshot cannot.
+  — time supplies a real arrow that the covariance, being symmetric, cannot.
 
 ### Direction C — raw pairwise-difference model zoo / learned `F` / kNN / embedding on `Δ_g`. Weight: mostly closed; fold in.
 

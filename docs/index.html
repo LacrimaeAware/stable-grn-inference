@@ -69,7 +69,7 @@
   <p class="lede">A gene-regulatory network is a wiring diagram: gene A turns gene B up or down. The standard goal is to recover that wiring from expression data, meaning which genes are active in which cells. This project asks, across 39 controlled experiments, when that is actually possible and when it is not.</p>
   <p>The short version, in four parts:</p>
   <ul>
-    <li>The <strong>direction</strong> of an edge cannot be read from a static snapshot at all. The statistic underneath (correlation) is symmetric, so A&nbsp;&rarr;&nbsp;B looks identical to B&nbsp;&rarr;&nbsp;A. Direction becomes recoverable only with time-series, perturbations, or non-Gaussian structure.</li>
+    <li>The <strong>direction</strong> of an edge is not contained in the correlation matrix, which is symmetric: A&nbsp;&rarr;&nbsp;B and B&nbsp;&rarr;&nbsp;A score identically (0.50, chance). That is a fact about the second-order statistic, not about static data as such; a static snapshot's higher moments can carry orientation. Direction is recoverable from an injected or higher-order asymmetry, a time axis, an intervention, or non-Gaussian (higher-moment) structure. Each recovered direction above chance here in principle, but none of the advanced methods beat the simple baselines on real data.</li>
     <li>Even where edges are recoverable, a handful of <strong>simple, decade-old methods</strong> (correlation, GENIE3, lagged regression) are as accurate as everything more sophisticated tried here.</li>
     <li>What can be recovered from real CRISPR-perturbation data is not the edges but <strong>coarser, reproducible structure</strong>: which genes are essential, and what sits upstream of what.</li>
     <li>The hard cases are hard for a measurable reason, captured by a <strong>separability phase diagram</strong> with one fixable axis and one unfixable noise floor.</li>
@@ -84,8 +84,8 @@
   <h2>Six findings</h2>
 
   <div class="finding">
-    <h3><span class="k">1.</span> Direction requires time, intervention, or higher-order structure</h3>
-    <p>A symmetric second-order statistic cannot orient an edge: correlation scores A&nbsp;&rarr;&nbsp;B and B&nbsp;&rarr;&nbsp;A identically, fixing orientation accuracy at exactly 0.50 by construction. Lagged time-series orient well on simulated networks (0.81 to 0.96 on DREAM4). Static single-cell data does not (mean 0.60, often 0.50). Interventions make 61% of RPE1 gene pairs direction-decidable.</p>
+    <h3><span class="k">1.</span> Direction is not in the correlation matrix; it needs time, intervention, or higher-order structure</h3>
+    <p>A symmetric second-order statistic cannot orient an edge: correlation scores A&nbsp;&rarr;&nbsp;B and B&nbsp;&rarr;&nbsp;A identically, fixing orientation accuracy at exactly 0.50 by construction. This limits the statistic, not static data: a static snapshot's higher moments can carry orientation, and a non-Gaussian (LiNGAM) method orients a planted chain from static data alone (experiment 35). Empirically, lagged time-series orient well on simulated networks (0.81 to 0.96 on DREAM4), static single-cell methods do not orient reliably (mean 0.60, often 0.50), and interventions make 61% of RPE1 gene pairs direction-decidable. Each asymmetry source recovered direction above chance in principle, but none beat the simple baselines on real data.</p>
     <figure>
       <img src="figures/fig1_regime_ladder.png" alt="Orientation accuracy by data type: DREAM4 0.92, BEELINE 0.60, RPE1 0.67, against a 0.50 random line.">
       <figcaption>Typical edge-direction accuracy by data type. Simulated time-series (DREAM4) orient near 0.92; static single-cell (BEELINE) sits near 0.60; interventional CRISPR data (RPE1, cross-half agreement) near 0.67. The dashed line at 0.50 is random.</figcaption>
