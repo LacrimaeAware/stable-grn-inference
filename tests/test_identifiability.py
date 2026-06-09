@@ -7,7 +7,6 @@ tooling does not get this known answer right, it must not be pointed at a real m
 """
 
 import unittest
-from functools import partial
 
 import numpy as np
 
@@ -46,13 +45,30 @@ class StructuralIdentifiabilityTest(unittest.TestCase):
         self.assertEqual(rep["rank"], 4)
 
 
-# Keep these correctness checks fast: a flat profile (non-identifiable) stays flat at any resolution,
-# and a bounded profile rises well above the delta threshold on a coarse grid, so a small grid with a
-# capped inner optimizer and a looser ODE tolerance suffices. The structural Fisher-rank tests above
-# are the decisive check; these confirm it via profile likelihood.
-_FAST = partial(simulate_mrna_protein, rtol=1e-6, atol=1e-8)
-FIT = dict(maxiter=300, simulate=_FAST)
-PROF = dict(span=2.0, n=5, maxiter=200, simulate=_FAST)
+def _sim_fast(theta, t, *, m0=0.0, p0=0.0):
+    """Closed-form solution of the mRNA->protein cascade for zero initial conditions.
+
+    The profile-likelihood checks call the simulator thousands of times inside the inner optimizer, and
+    ``solve_ivp``'s per-call overhead dominates. This is the exact analytic solution of the same model,
+    so the tests run in well under a second without changing the answer. (Used only for m0=p0=0, which
+    is what these tests use; the structural Fisher-rank tests above still exercise the real ODE solver.)
+    """
+    k_m, d_m, k_p, d_p = np.exp(np.asarray(theta, dtype=float))
+    t = np.asarray(t, dtype=float)
+    m = (k_m / d_m) * (1.0 - np.exp(-d_m * t))
+    amp = k_p * k_m / d_m
+    term1 = (1.0 - np.exp(-d_p * t)) / d_p
+    diff = d_p - d_m
+    term2 = t * np.exp(-d_m * t) if abs(diff) < 1e-8 else (np.exp(-d_m * t) - np.exp(-d_p * t)) / diff
+    p = amp * (term1 - term2)
+    return np.column_stack([m, p])
+
+
+# A flat profile (non-identifiable) stays flat at any resolution; a bounded profile rises well above
+# the delta threshold. The structural Fisher-rank tests above are the decisive check; these confirm it
+# via profile likelihood, on the fast analytic simulator.
+FIT = dict(maxiter=2000, simulate=_sim_fast)
+PROF = dict(span=2.0, n=9, maxiter=2000, simulate=_sim_fast)
 
 
 class ProfileLikelihoodTest(unittest.TestCase):
