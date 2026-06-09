@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regimes and limits of directed gene-network recovery</title>
+<meta name="description" content="A controlled, regime-by-regime study of when a directed gene-regulatory edge can be recovered from expression data, and why it usually cannot.">
+<style>
+  :root { --ink:#1a1d21; --muted:#5b6470; --line:#e3e7ec; --accent:#c2563d; --teal:#2e8b8b; --bg:#fbfbf9; --card:#ffffff; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font:17px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:820px; margin:0 auto; padding:0 22px 96px; }
+  header { padding:64px 0 28px; border-bottom:1px solid var(--line); }
+  h1 { font-size:30px; line-height:1.25; margin:0 0 10px; letter-spacing:-0.01em; }
+  .sub { color:var(--muted); font-size:18px; margin:0; }
+  .repo { margin-top:18px; font-size:15px; }
+  .repo a { color:var(--teal); text-decoration:none; border-bottom:1px solid #bfe0e0; }
+  .repo a:hover { border-bottom-color:var(--teal); }
+  h2 { font-size:22px; margin:48px 0 6px; letter-spacing:-0.01em; }
+  h2 .n { color:var(--accent); font-variant-numeric:tabular-nums; }
+  h3 { font-size:18px; margin:30px 0 4px; }
+  p { margin:12px 0; }
+  .lede { font-size:18.5px; }
+  .muted { color:var(--muted); }
+  .tag { display:inline-block; font-size:12px; font-weight:600; letter-spacing:.03em;
+    text-transform:uppercase; padding:2px 9px; border-radius:99px; vertical-align:middle; }
+  .tag.verified { background:#e6f2ec; color:#1f7a4d; }
+  .tag.partial { background:#fdf1e3; color:#9a5a18; }
+  .tag.neg { background:#f1f0f2; color:#5b6470; }
+  figure { margin:22px 0 8px; padding:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; }
+  figure img { width:100%; height:auto; display:block; border-radius:4px; }
+  figcaption { font-size:14px; color:var(--muted); margin-top:10px; }
+  .finding { padding:22px 0 6px; border-top:1px solid var(--line); }
+  .finding:first-of-type { border-top:none; }
+  .k { display:inline-block; min-width:1.6em; color:var(--accent); font-weight:700;
+    font-variant-numeric:tabular-nums; }
+  table { width:100%; border-collapse:collapse; margin:18px 0; font-size:14.5px; }
+  th,td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:13px; text-transform:uppercase; letter-spacing:.03em; }
+  td.exp { font-variant-numeric:tabular-nums; color:var(--muted); white-space:nowrap; }
+  ul { margin:12px 0; padding-left:22px; }
+  li { margin:7px 0; }
+  code { background:#f1f0ee; padding:1px 5px; border-radius:4px; font-size:14px; }
+  .callout { background:var(--card); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:8px; padding:14px 18px; margin:20px 0; }
+  footer { margin-top:56px; padding-top:22px; border-top:1px solid var(--line);
+    font-size:14.5px; color:var(--muted); }
+  footer a { color:var(--teal); text-decoration:none; }
+  footer a:hover { text-decoration:underline; }
+  .toc { font-size:14.5px; color:var(--muted); margin:18px 0 0; }
+  .toc a { color:var(--teal); text-decoration:none; }
+  .toc a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Regimes and limits of directed gene-network recovery</h1>
+  <p class="sub">When a directed gene-regulatory edge can be recovered from expression data, when it cannot, and a controlled explanation for the failures.</p>
+  <p class="repo">Repository: <a href="https://github.com/LacrimaeAware/stable-grn-inference">github.com/LacrimaeAware/stable-grn-inference</a> &middot; 39 experiments &middot; 213 tests</p>
+</header>
+
+<section id="plain">
+  <h2>In plain terms</h2>
+  <p class="lede">A gene-regulatory network is a wiring diagram: gene A turns gene B up or down. The standard goal is to recover that wiring from expression data, meaning which genes are active in which cells. This project asks, across 39 controlled experiments, when that is actually possible and when it is not.</p>
+  <p>The short version, in four parts:</p>
+  <ul>
+    <li>The <strong>direction</strong> of an edge cannot be read from a static snapshot at all. The statistic underneath (correlation) is symmetric, so A&nbsp;&rarr;&nbsp;B looks identical to B&nbsp;&rarr;&nbsp;A. Direction becomes recoverable only with time-series, perturbations, or non-Gaussian structure.</li>
+    <li>Even where edges are recoverable, a handful of <strong>simple, decade-old methods</strong> (correlation, GENIE3, lagged regression) are as accurate as everything more sophisticated tried here.</li>
+    <li>What can be recovered from real CRISPR-perturbation data is not the edges but <strong>coarser, reproducible structure</strong>: which genes are essential, and what sits upstream of what.</li>
+    <li>The hard cases are hard for a measurable reason, captured by a <strong>separability phase diagram</strong> with one fixable axis and one unfixable noise floor.</li>
+  </ul>
+  <div class="callout">
+    This is a negative-results and diagnostics project, stated as such. It is a map of a wall with a controlled explanation, plus one reproducible real-data signal. It is not a new method that beats the state of the art, and it does not claim to be.
+  </div>
+  <p class="toc">Jump to: <a href="#findings">Findings</a> &middot; <a href="#capstones">Capstones</a> &middot; <a href="#negative">What did not work</a> &middot; <a href="#lessons">Lessons</a> &middot; <a href="#forward">Forward</a> &middot; <a href="#log">Experiment log</a></p>
+</section>
+
+<section id="findings">
+  <h2>Six findings</h2>
+
+  <div class="finding">
+    <h3><span class="k">1.</span> Direction requires time, intervention, or higher-order structure</h3>
+    <p>A symmetric second-order statistic cannot orient an edge: correlation scores A&nbsp;&rarr;&nbsp;B and B&nbsp;&rarr;&nbsp;A identically, fixing orientation accuracy at exactly 0.50 by construction. Lagged time-series orient well on simulated networks (0.81 to 0.96 on DREAM4). Static single-cell data does not (mean 0.60, often 0.50). Interventions make 61% of RPE1 gene pairs direction-decidable.</p>
+    <figure>
+      <img src="figures/fig1_regime_ladder.png" alt="Orientation accuracy by data type: DREAM4 0.92, BEELINE 0.60, RPE1 0.67, against a 0.50 random line.">
+      <figcaption>Typical edge-direction accuracy by data type. Simulated time-series (DREAM4) orient near 0.92; static single-cell (BEELINE) sits near 0.60; interventional CRISPR data (RPE1, cross-half agreement) near 0.67. The dashed line at 0.50 is random.</figcaption>
+    </figure>
+  </div>
+
+  <div class="finding">
+    <h3><span class="k">2.</span> Simple established methods are not beaten on fair benchmarks</h3>
+    <p>Correlation, GENIE3, lagged LASSO, and self-persistence were not outperformed by any advanced method tried: a dynamical / DMD operator, spectral and diffusion ordering, non-Gaussian LiNGAM orientation, or higher-order correlation. On DREAM4 the dynamical operator ranks last of the orientable methods (directed AUPR 0.37 versus lagged GENIE3 0.54). This matches the published field, where simple baselines match deep models on this task.</p>
+    <figure>
+      <img src="figures/fig2_clean_vs_real.png" alt="Three method families reach ~1.0 on synthetic data and ~0.5 on real RPE1 data.">
+      <figcaption>The same methods recover synthetic ground truth almost perfectly (green) but fall to chance on real RPE1 data (grey). The machinery is correct; the real biology does not satisfy its assumptions.</figcaption>
+    </figure>
+  </div>
+
+  <div class="finding">
+    <h3><span class="k">3.</span> Real perturbation response is dominated by one convergent program</h3>
+    <p>In RPE1, knockouts of essential genes trigger a shared cell-cycle program accounting for about 53% of response variance. This dominant mode drowns gene-specific edges and is not linearly separable from them.</p>
+    <figure>
+      <img src="figures/fig3_cascade.png" alt="Donut chart: the top component explains 53% of the RPE1 response matrix variance.">
+      <figcaption>A single component explains 53% of the variance in the RPE1 perturbation-response matrix.</figcaption>
+    </figure>
+    <figure>
+      <img src="figures/rpe1_response_geometry.png" alt="Response spectrum, split-half stability, and effective number of responders for RPE1.">
+      <figcaption>The response spectrum is shallow beyond the dominant mode (left), only about half of per-perturbation responses are split-half reproducible (centre), and each knockout moves hundreds of genes (right), so the response is broad rather than sparse.</figcaption>
+    </figure>
+  </div>
+
+  <div class="finding">
+    <h3><span class="k">4.</span> A separability phase diagram explains the failures</h3>
+    <p>Recovering specific structure from under a dominant shared mode has two axes. One is the dominant-mode fraction (rho), which is fixable by deflation. The other is a specific signal-to-noise floor, which is not. On a full synthetic grid (100 genes, 5 seeds), deflation is rho-invariant (recovery 0.67 across all rho), but no method clears a signal-to-noise floor near 0.2. RPE1 sits in the unrecoverable corner (rho about 0.53, low specific-SNR; best recovery 0.33). The bottleneck is the noise floor, not the dominant mode itself.</p>
+    <figure>
+      <img src="figures/separability_phase_diagram.png" alt="Two heatmaps of recovery over dominant-mode fraction and specific-SNR; deflation removes the rho dependence but not the SNR floor.">
+      <figcaption>Recovery of specific structure over the dominant-mode fraction (x) and specific signal-to-noise (y). Naive recovery (left) decays along both axes; after deflation (right) the horizontal dependence on rho is gone, but the vertical signal-to-noise floor remains. The red line marks RPE1's measured rho of 0.53, in the low-recovery band.</figcaption>
+    </figure>
+  </div>
+
+  <div class="finding">
+    <h3><span class="k">5.</span> What is recoverable from real data is aggregate structure, not edges</h3>
+    <p>Per-gene axes are recoverable where edges are not. The response magnitude / breadth of a knockout (an essentiality measure) and a net-effect upstream / downstream ordering are split-half reproducible (Spearman 0.970 and 0.986) and recover known machinery: ribosome, spliceosome, proteasome, and nuclear pore. This is a strong internal diagnostic with qualitative external concordance, not proof of direct regulation.</p>
+    <figure>
+      <img src="figures/causalbench_essentiality.png" alt="Left: essentiality reproducibility scatter rho 0.970. Right: essentiality versus upstream score, rho 0.463.">
+      <figcaption>Left: per-gene essentiality (response magnitude) is highly reproducible across independent cell halves (Spearman 0.970). Right: more essential genes tend to sit upstream (net-effect score), Spearman 0.463.</figcaption>
+    </figure>
+  </div>
+
+  <div class="finding">
+    <h3><span class="k">6.</span> Internal reproducibility is not biology</h3>
+    <p>A response heterogeneity that looked reproducible, structured, and cell-state-aligned turned out to be sequencing depth: its axis correlates with library size at 0.85 and is one global mode shared across all knockouts. Program discovery that survives reproducibility collapses to housekeeping genes (GAPDH, ACTB) under depth and external-coherence controls. Reproducibility reproduces technical artifacts too; a structure claim must control for depth, show specificity, and validate against external biology.</p>
+  </div>
+</section>
+
+<section id="capstones">
+  <h2>Capstones and verification status</h2>
+  <p class="muted">Every claim above was re-checked against the experiment code and results. The two load-bearing experiments:</p>
+  <h3>Experiment 28, separability phase diagram <span class="tag verified">verified</span></h3>
+  <p>Re-run on the full grid (100 genes, 5 seeds) in this checkout. The two-axis result holds: deflation is rho-invariant, the signal-to-noise floor is near 0.2, and RPE1's corner reaches only 0.33. The system is synthetic with known ground truth. Placing RPE1 on the map (measured rho about 0.53) is an interpretation, not a theorem.</p>
+  <h3>Experiment 26, essentiality and cascade axis <span class="tag partial">verified, internal</span></h3>
+  <p>Re-run on the RPE1 data in this checkout (651 genes, 11,485 control cells): essentiality reproducibility Spearman 0.970, net-effect ordering 0.986, with known machinery in the top-ranked genes. The reproducibility is internal (split-half) and the machinery recovery is qualitative external concordance. A formal external benchmark (quantitative correlation against DepMap essentiality or CORUM) was not performed.</p>
+  <h3>Experiments 33, 38, 39, fair benchmark and confound audits <span class="tag verified">verified</span></h3>
+  <p>The dynamical operator loses to lagged GENIE3 on the same pairs and ground truth (exp 33). The single-cell heterogeneity signal is library size (exp 38). No externally-coherent, non-housekeeping, knockout-specific program survives the controls (exp 39).</p>
+</section>
+
+<section id="negative">
+  <h2>What did not work, and is not re-attempted</h2>
+  <ul>
+    <li><strong>Removing or inverting the dominant program</strong> (exp 22, 23): subtraction reduces stability; linear deconvolution recovers synthetic truth but gains nothing on RPE1.</li>
+    <li><strong>Transfer across perturbations</strong> (exp 24): shared low-rank structure does not predict a held-out perturbation better than its own noisy half.</li>
+    <li><strong>Cascade-adjacency as an edge cue</strong> (exp 27): ordering distance is uncorrelated with mediation.</li>
+    <li><strong>Dynamical / DMD operator</strong> (exp 30 to 33): orients where a symmetric statistic cannot, but loses to lagged GENIE3.</li>
+    <li><strong>Order from static geometry</strong> (exp 34): the 1D order is recoverable (Spearman 0.82) but ties a plain PCA baseline (0.82) and does not improve network recovery.</li>
+    <li><strong>Non-Gaussian orientation</strong> (exp 35): provably correct on a planted chain, but on BoolODE it does not beat correlation (0.29 versus 0.36 at 200 cells; 0.32 versus 0.36 at 5000).</li>
+    <li><strong>Higher-order / iterated correlation</strong> (exp 34, 36): adds spurious transitive edges.</li>
+    <li><strong>Program and heterogeneity discovery</strong> (exp 37 to 39): collapses to depth and housekeeping confounds under audit.</li>
+  </ul>
+</section>
+
+<section id="lessons">
+  <h2>Lessons</h2>
+  <ul>
+    <li>Beating chance, or beating a symmetric baseline that cannot do the task, is not a result. The bar is the established method (GENIE3, correlation, lagged regression) on the same data and ground truth.</li>
+    <li>Internal reproducibility reproduces technical artifacts such as library size. External validation is required before a structure claim.</li>
+    <li>Identifiability is set by the regime: edge direction is recoverable only with time, intervention, or non-Gaussian structure, not from a static second-order statistic.</li>
+    <li>A clean negative with a controlled explanation (the phase diagram) is the durable contribution, not a leaderboard number.</li>
+  </ul>
+</section>
+
+<section id="forward">
+  <h2>Forward direction</h2>
+  <p>The directed-edge-recovery question is treated as concluded: a mapped wall with a diagnostic explanation (exp 28) and a reproducible aggregate signal (exp 26). The forward direction, pursued separately, is parameter identifiability and inference for small mechanistic adaptation models, which fits a statistics background and is not a saturated benchmark. Its first tooling step (exp 40) is built and verified on a textbook gene-expression model: observing protein alone, transcription and translation rates are not separately identifiable (Fisher rank 3 of 4); observing mRNA as well makes them identifiable (rank 4 of 4).</p>
+</section>
+
+<section id="log">
+  <h2>Experiment log</h2>
+  <table>
+    <thead><tr><th>#</th><th>Experiment</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td class="exp">01-04</td><td>DREAM4 baselines</td><td>correlation AUPR 0.33 highest; LASSO 0.29, RF 0.30</td></tr>
+      <tr><td class="exp">07-09</td><td>lagged + dynamic sparse</td><td>lagged AUPR 0.30 to 0.53; best Size10 AUPR 0.65</td></tr>
+      <tr><td class="exp">10-14</td><td>scaling, calibration, mechanism</td><td>does not scale to Size100; alpha tracks density; CV/BIC retain 96-100% of oracle</td></tr>
+      <tr><td class="exp">15-18</td><td>BEELINE + orientation diagnostics</td><td>static methods transfer; orientation 0.81-0.96 (DREAM4) vs 0.50-1.00 (BEELINE)</td></tr>
+      <tr><td class="exp">19-20</td><td>interventional scouting + RPE1</td><td>61% decidable; observational AUROC 0.57</td></tr>
+      <tr><td class="exp">21-25</td><td>response geometry, cleaning, inverse, transfer</td><td>top mode 53%; cleaning and deconvolution help on synthetic, not RPE1; no transfer</td></tr>
+      <tr><td class="exp">26</td><td>essentiality and cascade position</td><td>reproducible 0.970 / 0.986; recovers known machinery; internal, verified on in-repo data</td></tr>
+      <tr><td class="exp">27</td><td>cascade-adjacent edges</td><td>ordering distance uncorrelated with mediation (-0.06)</td></tr>
+      <tr><td class="exp">28</td><td>separability phase diagram</td><td>verified full grid: rho fixable, specific-SNR a hard floor (~0.2); RPE1 corner 0.33</td></tr>
+      <tr><td class="exp">29-32</td><td>whitened asymmetry, dynamical recovery</td><td>whitening does not help; operator orients where static cannot; RENGE ordering reproducible 0.75</td></tr>
+      <tr><td class="exp">33</td><td>dynamical baseline benchmark</td><td>no win: last on DREAM4 (0.37 vs 0.54), 2nd on BoolODE (0.41 vs 0.45)</td></tr>
+      <tr><td class="exp">34</td><td>order from static</td><td>order recovered (0.82) ties PC1 (0.82); no network gain; higher-order adds spurious edges</td></tr>
+      <tr><td class="exp">35</td><td>non-Gaussian orientation</td><td>orients a planted chain but fails on BoolODE (0.29 vs 0.36 at 200 cells; 0.32 vs 0.36 at 5000)</td></tr>
+      <tr><td class="exp">36</td><td>queued directions</td><td>consensus does not beat best single lens; 2D recovers the cycle (0.80 vs 0.55)</td></tr>
+      <tr><td class="exp">37-39</td><td>programs and heterogeneity, audited</td><td>heterogeneity is library size (corr 0.85); only housekeeping survives controls. Negative</td></tr>
+      <tr><td class="exp">40</td><td>identifiability pipeline (forward)</td><td>protein-only cannot separate transcription/translation rate (rank 3/4); both-observed can (4/4)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <p>Full write-ups and numbers live in the repository:</p>
+  <p>
+    <a href="https://github.com/LacrimaeAware/stable-grn-inference/blob/main/docs/experiment_summary.md">Per-experiment results</a> &middot;
+    <a href="https://github.com/LacrimaeAware/stable-grn-inference/blob/main/docs/research_directions.md">Directions and reconciliation with the literature</a> &middot;
+    <a href="https://github.com/LacrimaeAware/stable-grn-inference/blob/main/docs/literature_review.md">Literature review</a> &middot;
+    <a href="https://github.com/LacrimaeAware/stable-grn-inference/blob/main/docs/roadmap.md">Forward roadmap</a>
+  </p>
+  <p>Each <code>experiments/NN_*/</code> directory contains a write-up, the script that produced it, and tests.</p>
+</footer>
+
+</div>
+</body>
+</html>
