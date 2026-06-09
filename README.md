@@ -1,18 +1,37 @@
 # Regimes and limits of directed gene-network recovery
 
-Repository: `stable-grn-inference`. A controlled, regime-by-regime study of when a directed
-gene-regulatory edge (gene A regulates gene B) can be recovered from expression data, and why it
-usually cannot. Forty experiments span simulated networks (DREAM4), static single-cell data
-(BEELINE), interventional CRISPR perturbation data (Replogle RPE1, RENGE), and time-resolved data
-(BoolODE, RENGE, DREAM4 time-series). Every claim is graded against fair baselines and audited for
-confounds. The contribution is not a new inference method; it is a map of where recovery is and is
-not possible, with a controlled explanation for the failures.
+Repository: `stable-grn-inference`. Readable walkthrough with figures:
+<https://lacrimaeaware.github.io/stable-grn-inference/>.
+
+## In plain terms
+
+A gene-regulatory network is a wiring diagram: gene A turns gene B up or down. The standard goal is to
+recover that wiring from expression data (which genes are active, in which cells). This project asks,
+across 39 controlled experiments, when that is actually possible and when it is not. The short version:
+edge direction cannot be read from a static snapshot at all, because the underlying statistic is
+symmetric and A to B looks identical to B to A; direction becomes recoverable only with time-series,
+perturbations, or non-Gaussian structure; and even where edges are recoverable, a handful of simple,
+decade-old methods (correlation, GENIE3, lagged regression) are as accurate as everything more
+sophisticated tried here. What can be recovered from real CRISPR-perturbation data is not the edges but
+coarser, reproducible structure: which genes are essential, and what sits upstream of what. The durable
+result is a map of that boundary, with one controlled explanation (a separability phase diagram) for
+why the hard cases are hard.
+
+## Scope
+
+A controlled, regime-by-regime study of when a directed gene-regulatory edge (gene A regulates gene B)
+can be recovered from expression data, and why it usually cannot. Thirty-nine experiments (numbered 01
+to 40, with no 05) span simulated networks (DREAM4), static single-cell data (BEELINE), interventional
+CRISPR perturbation data (Replogle RPE1, RENGE), and time-resolved data (BoolODE, RENGE, DREAM4
+time-series). Every claim is graded against fair baselines and audited for confounds. The contribution
+is not a new inference method; it is a map of where recovery is and is not possible, with a controlled
+explanation for the failures.
 
 ## Headline conclusions
 
 1. Direction requires time, intervention, or higher-order structure. A symmetric second-order
    statistic (correlation) cannot orient an edge (0.50 by construction). Lagged time-series orient
-   well (0.88 to 0.96 on DREAM4); static single-cell data does not (mean 0.60, often 0.50);
+   well (0.81 to 0.96 on DREAM4); static single-cell data does not (mean 0.60, often 0.50);
    interventions make 61% of RPE1 pairs direction-decidable.
 
 2. Simple established methods are not beaten, on fair benchmarks. Correlation, GENIE3, lagged LASSO,
@@ -23,9 +42,8 @@ not possible, with a controlled explanation for the failures.
    simple baselines match deep models on this task.
 
 3. Real perturbation response is dominated by one convergent program. In RPE1, knockouts of essential
-   genes trigger a shared cell-cycle program accounting for about 53% of response variance (about 4%
-   of unperturbed control variance), which drowns gene-specific edges and is not linearly separable
-   from them.
+   genes trigger a shared cell-cycle program accounting for about 53% of response variance, which
+   drowns gene-specific edges and is not linearly separable from them.
 
 4. A separability phase diagram explains the failures (experiment 28, the conceptual capstone).
    Recovering specific structure from under a dominant shared mode has two axes: the dominant-mode
@@ -55,11 +73,15 @@ not possible, with a controlled explanation for the failures.
   checkout): the two-axis result and the SNR floor near 0.2 hold; deflation is rho-invariant. The
   system is synthetic with known ground truth. The placement of RPE1 on the map (measured rho about
   0.53, low SNR) is an interpretation, not a theorem.
-- Experiment 26, essentiality and cascade axis. The reproducibility figures (0.97, 0.99) come from a
-  prior run on the RPE1 `h5ad`, which is not present in this checkout (git-ignored, about 8.7 GB) and
-  cannot be re-run here. The reproducibility is internal (split-half). External validation against
-  DepMap essentiality, CORUM, or STRING was not performed. Status: a strong internal diagnostic, not
-  externally validated, not reproducible from this checkout alone.
+- Experiment 26, essentiality and cascade axis. VERIFIED by re-running on the RPE1 `h5ad` present in
+  this checkout (651 genes, 11,485 control cells): the essentiality (response magnitude) ranking is
+  split-half reproducible at Spearman 0.970, and the net-effect upstream / downstream ranking at 0.986.
+  The most essential genes are known machinery: ribosome (RPL7, RPL23, RPL35A), spliceosome (SNRNP200,
+  SF3B3, SNRPC), proteasome (PSMC5, PSMB5), nuclear pore (NUP98, NUP107). The reproducibility is
+  internal (split-half); the machinery recovery is qualitative external concordance. A formal external
+  benchmark (quantitative correlation against DepMap essentiality or CORUM) was not performed. Status:
+  a reproducible internal diagnostic with qualitative external concordance, not a formal external
+  validation.
 - Experiment 33, fair benchmark. VERIFIED in-repo: the dynamical operator loses to lagged GENIE3 and
   lagged LASSO on the same pairs and the same ground truth.
 - Experiments 38 and 39, confound audits. VERIFIED in-repo on RENGE: the heterogeneity signal is
@@ -74,10 +96,11 @@ not possible, with a controlled explanation for the failures.
 - Cascade-adjacency as an edge cue (experiment 27): ordering distance is uncorrelated with mediation.
 - Dynamical / DMD operator (experiments 30 to 33): orients where a symmetric statistic cannot, but
   loses to lagged GENIE3 on fair benchmarks.
-- Order from static geometry (experiment 34): the 1D order is recoverable (Spearman 0.83) but ties a
-  plain PCA baseline and does not improve network recovery.
+- Order from static geometry (experiment 34): the 1D order is recoverable (Spearman 0.82) but ties a
+  plain PCA baseline (0.82) and does not improve network recovery.
 - Non-Gaussian orientation (experiment 35): provably correct on a planted chain, but on BoolODE it
-  does not beat symmetric correlation (0.29 versus 0.36), unchanged at 5000 cells.
+  does not beat symmetric correlation (0.29 versus 0.36 at 200 cells); the gap persists at 5000 cells
+  (0.32 versus 0.36).
 - Higher-order / iterated correlation (experiments 34, 36): adds spurious transitive edges.
 - Program and heterogeneity discovery (experiments 37 to 39): collapses to depth and housekeeping
   confounds under audit.
@@ -113,7 +136,7 @@ combination-perturbation data is documented as a separate later option, not purs
 | 10    | Size100 scaling | same model, 100 genes | did not scale; alpha 0.1 best; fusion AUPR 0.21 |
 | 11-14 | calibration, fusion, mechanism | alpha sweep, CV/BIC, self-permutation | alpha tracks density; CV/BIC retain 96-100% of oracle |
 | 15-16 | BEELINE adapter | static methods on single-cell | transfer confirmed; references are proxies |
-| 17-18 | orientation diagnostics | skeleton vs orientation, sqrt-LASSO, stability | orientation 0.88-0.96 (DREAM4) vs 0.50-1.00 (BEELINE) |
+| 17-18 | orientation diagnostics | skeleton vs orientation, sqrt-LASSO, stability | orientation 0.81-0.96 (DREAM4) vs 0.50-1.00 (BEELINE) |
 | 19    | interventional scouting | benchmark selection | CausalBench / RPE1 selected |
 | 20    | RPE1 diagnostics | Wasserstein effect, direction asymmetry | 61% decidable; observational AUROC 0.57 |
 | 21    | response geometry | SVD, split-half stability | top component 53%; direction reproducible 0.70 |
@@ -121,14 +144,14 @@ combination-perturbation data is documented as a separate later option, not purs
 | 23    | inverse deconvolution | W = I - (I+D)^-1 | exact on synthetic; no gain on RPE1 |
 | 24    | held-out perturbation | low-rank prediction | no transfer beyond self-estimate |
 | 25    | counterfactual feature test | necessity / sufficiency | recovers synthetic truth; no transfer to RPE1 |
-| 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | reproducible 0.97 / 0.99, recovers known machinery (internal-only, prior run, not externally validated) |
+| 26    | essentiality and cascade position | response magnitude/breadth/centrality; net_out | reproducible 0.970 / 0.986, recovers known machinery (ribosome, spliceosome, proteasome, nuclear pore); internal split-half, verified on in-repo data; not formally externally validated |
 | 27    | cascade-adjacent edges | ordering distance vs mediation | not supported (-0.06); local restriction lowers reproducibility (0.43 vs 0.81); correlation most reproducible (0.91) |
 | 28    | separability phase diagram | synthetic dominant-mode + specific structure; sweep rho/SNR | VERIFIED full grid: rho fixable by deflation, specific-SNR a hard floor (~0.2); RPE1 in the unrecoverable corner (best 0.33) |
 | 29    | whitened asymmetry | residual-asymmetry reproducibility, whitening sweep | whitening does not help (best alpha 0); synthetic control only |
 | 30-32 | dynamical recovery | DMD operator vs static; DREAM4, BoolODE, RENGE timecourse | operator orients where static cannot; RENGE response builds over days, ordering reproducible 0.75 |
 | 33    | dynamical baseline benchmark | DMD vs lagged GENIE3/LASSO/correlation, same pairs/truth | no win: last on DREAM4 (0.37 vs 0.54), 2nd on BoolODE (0.41 vs 0.45) |
-| 34    | order from static | spectral / diffusion order; does order help; higher-order correlation | order recovered (0.83) ties PC1 (0.82); no network gain (0.35 vs 0.36); higher-order adds spurious edges |
-| 35    | non-Gaussian orientation | LiNGAM direction-from-static; detectability map | orients a planted chain but fails on BoolODE (0.29 vs 0.36), unchanged at 5000 cells |
+| 34    | order from static | spectral / diffusion order; does order help; higher-order correlation | order recovered (0.82) ties PC1 (0.82); no network gain (0.35 vs 0.36); higher-order adds spurious edges |
+| 35    | non-Gaussian orientation | LiNGAM direction-from-static; detectability map | orients a planted chain but fails on BoolODE (0.29 vs 0.36 at 200 cells); gap persists at 5000 cells (0.32 vs 0.36) |
 | 36    | queued directions | diversity-consensus; cycle 2D geometry | consensus does not beat best single lens (0.64 vs 0.67); 2D recovers the actual cycle (0.80 vs 0.55) |
 | 37    | programs and heterogeneity | NMF vs PCA reproducibility; single-cell heterogeneity | heterogeneity "result" was a technical confound (corrected by exp 38) |
 | 38    | heterogeneity audit | confound / specificity / residual tests | heterogeneity is library size (corr 0.85), one global axis (0.81); no knockout-specific residual (0.37) |
@@ -140,21 +163,22 @@ combination-perturbation data is documented as a separate later option, not purs
 ```bash
 # Python 3.13, dependencies in requirements.txt
 $env:PYTHONPATH = "src"
-.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 207 core tests (exp-40 identifiability tests are additional and compute-heavy)
+.\.venv\Scripts\python.exe -B -m unittest discover -s tests            # 213 tests (207 core, plus 6 exp-40 identifiability tests)
 .\.venv\Scripts\python.exe -B experiments/<NN_name>/run_*.py --quick   # any experiment
 .\.venv\Scripts\python.exe -B docs/figures/make_figures.py             # regenerate figures
 ```
 
 Datasets (`data/`) and generated tables (`results/`) are git-ignored; the test suite uses synthetic
-fixtures and does not depend on them. The RPE1 `h5ad` (experiments 20 to 26, 29, 37 to 39) is not in
-this checkout; those experiments require the file from CausalBench / figshare.
+fixtures and does not depend on them. Experiments 20 to 26 and 29 use the RPE1 `h5ad` (about 8 GB,
+present locally, git-ignored), obtained from CausalBench / figshare; experiments 31, 32, and 37 to 39
+use the RENGE time-course (GEO GSE213069). Neither dataset is committed.
 
 ## Layout
 
 ```text
 stable-grn-inference/
 ├── src/stable_grn_inference/   # library: data adapters, inference, evaluation, analysis, dynamics
-├── experiments/                # 40 experiments, each with a write-up, script, and tests
+├── experiments/                # 39 experiments (numbered 01 to 40, no 05), each with a write-up, script, and tests
 ├── docs/                       # reports, figures, roadmap, and the literature review
 └── tests/                      # synthetic fixtures only
 ```

@@ -7,6 +7,7 @@ Use this as a lightweight checklist for keeping project notes current. Do not up
 | Location | Update When | Purpose |
 |---|---|---|
 | `README.md` | Project scope, milestone, or top-level layout changes | Public entry point for the repo |
+| `docs/index.html` | Headline findings, capstones, or figures change | GitHub Pages walkthrough (served from `/docs`, at lacrimaeaware.github.io/stable-grn-inference) |
 | `docs/project_plan.md` | Phase status or next research direction changes | Public roadmap |
 | `docs/data_inventory.md` | Raw data files, file formats, selected benchmark files, or loader assumptions change | Data-understanding record |
 | `docs/experiment_summary.md` | A completed experiment changes the cross-experiment interpretation | Central results and conclusions reference |
@@ -44,6 +45,7 @@ Use this as a lightweight checklist for keeping project notes current. Do not up
 
 ```text
 README.md
+docs/index.html                    # GitHub Pages readable walkthrough (served from /docs)
 docs/project_plan.md
 docs/data_inventory.md
 docs/experiment_summary.md
@@ -91,7 +93,7 @@ experiments/37_programs_and_heterogeneity/programs_and_heterogeneity.md
 experiments/38_heterogeneity_audit/heterogeneity_audit.md
 experiments/39_validated_programs/validated_programs.md
 experiments/40_identifiability_pipeline/identifiability_pipeline.md
-data/raw/causalbench/              # ignored; large real Perturb-seq h5ad (not committed)
+data/raw/causalbench/              # ignored; large real RPE1 Perturb-seq h5ad (present locally ~8 GB, not committed)
 data/raw/renge/                    # ignored; RENGE GSE213069 time-resolved Perturb-seq (not committed)
 data/raw/trrust/                   # ignored; TRRUST directed TF-target network (not committed)
 data/raw/string/                   # ignored; STRING functional network for grading (not committed)

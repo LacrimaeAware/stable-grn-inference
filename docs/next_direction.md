@@ -95,7 +95,7 @@ baselines.
 The order-from-static idea (recover a 1D order from the geometry of a similarity matrix and its
 higher powers, then orient with a prior) was tested directly in exp 34 on BoolODE, which has both a
 true order and a true network. Outcome, twofold and honest: the order IS recoverable from static
-geometry (absolute Spearman 0.83; 0.96 on linear trajectories, 0.55 on cycles), which confirms the
+geometry (absolute Spearman 0.82; 0.96 on linear trajectories, 0.55 on cycles), which confirms the
 intuition and is the accuracy number the trajectory-inference literature does not report. But a
 plain top-principal-component baseline ties the spectral/diffusion order (0.82), so nonlinearity was
 not the bottleneck; the recovered order does not beat static correlation for the network (0.35 vs

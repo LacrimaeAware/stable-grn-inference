@@ -8,7 +8,7 @@ baselines (direct correlation, GENIE3, self-persistence) are the bar each must b
 Established context:
 - Skeleton (who relates to whom) is recoverable; direct correlation is the strong baseline.
 - Direction (who causes whom) does not come from a symmetric second-order statistic (correlation).
-- Order is recoverable from static geometry (exp 34, absolute Spearman 0.83) but does not improve
+- Order is recoverable from static geometry (exp 34, absolute Spearman 0.82) but does not improve
   network recovery; higher-order iterated correlation adds spurious transitive edges.
 - Small specific edges under the dominant cascade are bounded by signal-to-noise (exp 28).
 - Detectability intuition: a signal is recoverable to the degree its statistic sits far from the null.

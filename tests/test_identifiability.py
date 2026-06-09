@@ -45,23 +45,30 @@ class StructuralIdentifiabilityTest(unittest.TestCase):
         self.assertEqual(rep["rank"], 4)
 
 
+# Bounded settings keep these correctness checks fast: a flat profile (non-identifiable) stays flat at
+# any resolution, and a bounded profile rises well above the delta threshold on a coarse grid. The
+# structural Fisher-rank tests above are the decisive check; these confirm it via profile likelihood.
+FIT = dict(maxiter=500)
+PROF = dict(span=2.0, n=7, maxiter=500)
+
+
 class ProfileLikelihoodTest(unittest.TestCase):
     def test_k_m_flat_with_protein_only(self):
         data = _data((1,), seed=1)
-        mle = fit_mle(T, data, (1,), SIGMA, THETA + 0.1)
-        _, nll = profile_likelihood(0, mle, T, data, (1,), SIGMA, span=2.0, n=15)  # index 0 = k_m
+        mle = fit_mle(T, data, (1,), SIGMA, THETA + 0.1, **FIT)
+        _, nll = profile_likelihood(0, mle, T, data, (1,), SIGMA, **PROF)  # index 0 = k_m
         self.assertFalse(is_identifiable(nll))            # flat profile -> non-identifiable
 
     def test_k_m_bounded_with_both_channels(self):
         data = _data((0, 1), seed=2)
-        mle = fit_mle(T, data, (0, 1), SIGMA, THETA + 0.1)
-        _, nll = profile_likelihood(0, mle, T, data, (0, 1), SIGMA, span=2.0, n=15)
+        mle = fit_mle(T, data, (0, 1), SIGMA, THETA + 0.1, **FIT)
+        _, nll = profile_likelihood(0, mle, T, data, (0, 1), SIGMA, **PROF)
         self.assertTrue(is_identifiable(nll))             # bounded profile -> identifiable
 
     def test_product_k_m_k_p_is_preserved_under_protein_only(self):
         # the MLE may move k_m and k_p individually but should preserve their product
         data = _data((1,), seed=3)
-        mle = fit_mle(T, data, (1,), SIGMA, THETA + np.array([0.5, 0.0, -0.5, 0.0]))
+        mle = fit_mle(T, data, (1,), SIGMA, THETA + np.array([0.5, 0.0, -0.5, 0.0]), **FIT)
         true_prod = THETA[0] + THETA[2]
         self.assertAlmostEqual(mle[0] + mle[2], true_prod, places=1)
 
@@ -69,7 +76,7 @@ class ProfileLikelihoodTest(unittest.TestCase):
 class InferenceTest(unittest.TestCase):
     def test_recovers_all_params_when_both_observed(self):
         data = _data((0, 1), seed=4)
-        mle = fit_mle(T, data, (0, 1), SIGMA, THETA + 0.2)
+        mle = fit_mle(T, data, (0, 1), SIGMA, THETA + 0.2, **FIT)
         np.testing.assert_allclose(np.exp(mle), np.exp(THETA), rtol=0.15)
 
 

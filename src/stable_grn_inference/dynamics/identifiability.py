@@ -48,22 +48,32 @@ def neg_log_likelihood(theta, t, data, channels, sigma, *, simulate=simulate_mrn
     return float(np.sum((pred - np.asarray(data)) ** 2) / (2.0 * sigma ** 2))
 
 
-def fit_mle(t, data, channels, sigma, theta0, *, simulate=simulate_mrna_protein):
-    """Maximum-likelihood fit (Nelder-Mead on the log-parameters). Returns the MLE theta."""
+def fit_mle(t, data, channels, sigma, theta0, *, simulate=simulate_mrna_protein,
+            maxiter: int = 2000, xatol: float = 1e-6, fatol: float = 1e-9):
+    """Maximum-likelihood fit (Nelder-Mead on the log-parameters). Returns the MLE theta.
+
+    ``maxiter`` bounds the runtime. On a non-identifiable direction the objective is flat, so the
+    simplex never meets the tolerance and would otherwise run to the iteration cap; keep the cap modest.
+    """
     from scipy.optimize import minimize
 
     def obj(theta):
         return neg_log_likelihood(theta, t, data, channels, sigma, simulate=simulate)
 
     res = minimize(obj, np.asarray(theta0, dtype=float), method="Nelder-Mead",
-                   options={"xatol": 1e-6, "fatol": 1e-9, "maxiter": 20000})
+                   options={"xatol": xatol, "fatol": fatol, "maxiter": maxiter})
     return res.x
 
 
 def profile_likelihood(index, theta_mle, t, data, channels, sigma, *, grid=None,
-                       span: float = 2.0, n: int = 21, simulate=simulate_mrna_protein):
+                       span: float = 2.0, n: int = 21, simulate=simulate_mrna_protein,
+                       maxiter: int = 2000, xatol: float = 1e-6, fatol: float = 1e-9):
     """Profile likelihood for parameter ``index``: fix it across a grid, re-optimize the rest, record
-    the negative log-likelihood. Returns (grid in log space, nll profile)."""
+    the negative log-likelihood. Returns (grid in log space, nll profile).
+
+    ``maxiter`` bounds the inner re-optimization (see :func:`fit_mle`); a flat profile is the signal of
+    non-identifiability, so the cap controls runtime without changing the flat-versus-bounded verdict.
+    """
     from scipy.optimize import minimize
 
     theta_mle = np.asarray(theta_mle, dtype=float)
@@ -78,7 +88,7 @@ def profile_likelihood(index, theta_mle, t, data, channels, sigma, *, grid=None,
             th[free] = free_theta
             return neg_log_likelihood(th, t, data, channels, sigma, simulate=simulate)
         res = minimize(obj, theta_mle[free], method="Nelder-Mead",
-                       options={"xatol": 1e-6, "fatol": 1e-9, "maxiter": 20000})
+                       options={"xatol": xatol, "fatol": fatol, "maxiter": maxiter})
         nll.append(float(res.fun))
     return np.asarray(grid), np.asarray(nll)
 

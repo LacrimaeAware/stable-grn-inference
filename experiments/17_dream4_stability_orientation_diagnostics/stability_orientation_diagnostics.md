@@ -15,7 +15,8 @@ confounding (an identifiability caveat).
 ## Headline findings
 
 1. **The error is skeleton detection, not orientation.** Once a true pair is
-   detected, methods orient it correctly ~0.88–0.96 of the time, versus exactly
+   detected, methods orient it correctly ~0.81–0.96 of the time (lagged random
+   forest at the low end, sparse-CV at the high end), versus exactly
    **0.50** for the symmetric `static_correlation` control (a built-in validity
    check). The undirected-vs-directed AUPR gap is small (Size10 ~0.07–0.17, Size100
    ~0.03–0.05, all paired-CI-positive but small), while even the *undirected*

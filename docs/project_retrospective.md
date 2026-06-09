@@ -53,7 +53,7 @@ The task is directed gene regulatory network (GRN) inference: given gene-express
 
 ### Phase 2: BEELINE (real single-cell)
 - Static methods transfer; lagged methods do not (no time axis). Reference networks are proxies, so EPR is reported alongside AUPR.
-- Orientation accuracy is regime-dependent: 0.88 to 0.96 on DREAM4 time-series, 0.50 to 1.00 (mean 0.60) on BEELINE static data.
+- Orientation accuracy is regime-dependent: 0.81 to 0.96 on DREAM4 time-series, 0.50 to 1.00 (mean 0.60) on BEELINE static data.
 
 ### Phase 3: CausalBench / RPE1 (real CRISPR)
 - Working set: 651 perturbed genes, about 140,000 cells, 11,485 controls.
