@@ -218,16 +218,15 @@ s41587-023-01905-6, PMC11180609); biorxiv 2024.12.23.630036.
 
 ## 11. Cellular adaptation and a math/stats-fit direction (collaborator-aligned)
 
-Researched to find a direction that fits a statistics/math/quant background and a potential
-collaborator (Necmettin Yildirim), away from the saturated edge-recovery benchmark. Verification was
-strong (23 of 25 claims confirmed). Detail and the plan are in docs/roadmap.md.
+Researched to find a direction that fits a statistics/math/quant background and is collaborator-aligned,
+away from the saturated edge-recovery benchmark. Verification was strong (23 of 25 claims confirmed).
+Detail and the plan are in docs/roadmap.md.
 
-- Necmettin Yildirim: Professor of Mathematics (New College of Florida; formerly McGill, UNC). Does
-  mechanistic ODE/DDE dynamical-systems modeling (lac operon, cellular adaptation, receptor
-  desensitization), not machine learning and not GRN edge recovery. Key works: Yildirim & Mackey
-  (2003, Biophysical J 84:2841-2851, lac-operon DDE, cusp-bifurcation bistability); Dyjack,
-  Azeredo-Tseng & Yildirim (2017, Molecular BioSystems 13:1323-1335, yeast MAPK adaptation); Violin
-  et al. (2008, JBC 283:2949-2961, beta2-adrenergic receptor desensitization).
+- Collaborator background: mechanistic ODE/DDE dynamical-systems modeling (lac operon, cellular
+  adaptation, receptor desensitization), not machine learning and not GRN edge recovery. Key works:
+  Yildirim & Mackey (2003, Biophysical J 84:2841-2851, lac-operon DDE, cusp-bifurcation bistability);
+  Dyjack, Azeredo-Tseng & Yildirim (2017, Molecular BioSystems 13:1323-1335, yeast MAPK adaptation);
+  Violin et al. (2008, JBC 283:2949-2961, beta2-adrenergic receptor desensitization).
 - Cellular-adaptation theory (control-theoretic): Sontag's internal model principle (2003/2004,
   Systems & Control Letters); robust perfect adaptation = integral feedback; antithetic integral
   feedback (Briat, Gupta & Khammash 2016, Cell Systems; Aoki et al. 2019, Nature 570:533-537);
@@ -235,7 +234,7 @@ strong (23 of 25 claims confirmed). Detail and the plan are in docs/roadmap.md.
   Nat Commun 9:1757); the stochastic turn where noise changes the rules (Gupta & Khammash 2022, PNAS
   119:e2207802119).
 - The fit: the verified open question is that nobody has done a rigorous parameter-identifiability and
-  inference analysis of Yildirim's own adaptation/lac-operon models. That is the statistics/quant edge
+  inference analysis of these adaptation/lac-operon models. That is the statistics/quant edge
   (profile likelihood, Fisher information, Bayesian/particle-filter inference, optimal experimental
   design), individual-scale, and a real publishable contribution type. See docs/roadmap.md.
 

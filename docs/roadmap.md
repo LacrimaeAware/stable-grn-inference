@@ -1,16 +1,15 @@
 # Roadmap: a math/stats-fit direction in cellular adaptation
 
 A plan toward a modest, real, publishable-type contribution that fits a statistics / mathematics /
-quantitative background, aligned with a potential collaborator (Necmettin Yildirim) and away from the
-saturated GRN edge-recovery benchmark this repo already mapped as a wall. Built from a verified
-literature pass (docs/literature_review.md section 11).
+quantitative background, collaborator-aligned and away from the saturated GRN edge-recovery benchmark
+this repo already mapped as a wall. Built from a verified literature pass
+(docs/literature_review.md section 11).
 
-## The collaborator and his world
+## The collaborator
 
-Necmettin Yildirim, Professor of Mathematics (Soo Bong Chae Chair of Applied Math, New College of
-Florida; formerly McGill, UNC). Method: mechanistic dynamical-systems modeling, writing and analyzing
-ODE / delay-differential-equation (DDE) models and studying their dynamics (bifurcation, bistability).
-No machine learning and no GRN edge recovery in his corpus.
+Method: mechanistic dynamical-systems modeling, writing and analyzing ODE /
+delay-differential-equation (DDE) models and studying their dynamics (bifurcation, bistability).
+No machine learning and no GRN edge recovery in this corpus.
 
 - Yildirim & Mackey (2003), Biophysical J 84:2841-2851: 5-equation DDE model of the lac operon;
   bistability via a cusp bifurcation.
@@ -38,14 +37,14 @@ Adaptation has a rigorous control-theory backbone:
   between deterministic and stochastic descriptions; noise changes the rules.
 
 The open gap (a verified open question from the research): nobody has done a rigorous parameter
-identifiability and inference analysis of Yildirim's own adaptation / lac-operon models. He built and
-analyzed the dynamics; the statistician's questions (are these parameters estimable from data, how
+identifiability and inference analysis of these adaptation / lac-operon models. The dynamics have been
+built and analyzed; the statistician's questions (are these parameters estimable from data, how
 well, from what measurements) are unanswered. That gap is exactly the statistics/quant toolkit.
 
 ## The project (the candidate mild win)
 
-A rigorous identifiability + inference re-analysis of one Yildirim adaptation model (the 2003
-lac-operon DDE or the 2017 MAPK adaptation model):
+A rigorous identifiability + inference re-analysis of one published adaptation model (the 2003
+lac-operon DDE, Yildirim & Mackey, or the 2017 MAPK adaptation model, Dyjack et al.):
 1. Reimplement the published model (small ODE/DDE system).
 2. Structural and practical identifiability: profile likelihood / Fisher information; which parameters
    are estimable from realistic time-course data and which are not.
@@ -69,7 +68,7 @@ edge-recovery and structure-discovery directions offered.
 All directions on the board, with an honest comparison so the chosen one does not erase the others.
 
 - A. Identifiability / inference of adaptation models (this roadmap). RECOMMENDED first focus. Math/stats
-  fit, collaborator-aligned (Yildirim), individual-scale, low confound risk; the bar is "correct,
+  fit, collaborator-aligned, individual-scale, low confound risk; the bar is "correct,
   useful analysis," not beating a baseline.
 - B. Non-additivity / epistasis on combination-perturbation data (Norman et al. 2019). Biologically the
   more interesting question, but in the crowded ML-benchmark space where simple additive baselines are
@@ -92,7 +91,7 @@ not without diluting a one-person effort. Focus A; keep B documented.
   protein data alone but identifiable when mRNA is also observed: experiment 40,
   `src/stable_grn_inference/dynamics/identifiability.py`, tested in `tests/test_identifiability.py`.
   This proves the tooling is correct before it touches a real model.
-- Step 2 (port to Yildirim's actual 2003 lac-operon DDE) requires his published equations and
+- Step 2 (port to the 2003 lac-operon DDE, Yildirim & Mackey) requires the published equations and
   parameters, to be taken from the paper rather than reconstructed from memory.
 
 ## The quant-to-biology bridge (for step 3, and as a theme)
