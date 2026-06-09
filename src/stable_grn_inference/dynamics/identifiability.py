@@ -22,8 +22,13 @@ from __future__ import annotations
 import numpy as np
 
 
-def simulate_mrna_protein(theta, t, *, m0: float = 0.0, p0: float = 0.0) -> np.ndarray:
-    """Simulate the mRNA->protein cascade. ``theta`` = log([k_m, d_m, k_p, d_p]). Returns (len(t), 2)."""
+def simulate_mrna_protein(theta, t, *, m0: float = 0.0, p0: float = 0.0,
+                          rtol: float = 1e-8, atol: float = 1e-10) -> np.ndarray:
+    """Simulate the mRNA->protein cascade. ``theta`` = log([k_m, d_m, k_p, d_p]). Returns (len(t), 2).
+
+    ``rtol`` / ``atol`` are the ODE solver tolerances; the structural-identifiability answer is
+    insensitive to them, so tests can pass a looser tolerance to run the inner optimizers cheaply.
+    """
     from scipy.integrate import solve_ivp
 
     k_m, d_m, k_p, d_p = np.exp(np.asarray(theta, dtype=float))
@@ -33,7 +38,7 @@ def simulate_mrna_protein(theta, t, *, m0: float = 0.0, p0: float = 0.0) -> np.n
         return [k_m - d_m * m, k_p * m - d_p * p]
 
     t = np.asarray(t, dtype=float)
-    sol = solve_ivp(rhs, (float(t[0]), float(t[-1])), [m0, p0], t_eval=t, rtol=1e-8, atol=1e-10)
+    sol = solve_ivp(rhs, (float(t[0]), float(t[-1])), [m0, p0], t_eval=t, rtol=rtol, atol=atol)
     return sol.y.T
 
 

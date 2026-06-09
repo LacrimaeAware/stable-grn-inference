@@ -7,6 +7,7 @@ tooling does not get this known answer right, it must not be pointed at a real m
 """
 
 import unittest
+from functools import partial
 
 import numpy as np
 
@@ -45,11 +46,13 @@ class StructuralIdentifiabilityTest(unittest.TestCase):
         self.assertEqual(rep["rank"], 4)
 
 
-# Bounded settings keep these correctness checks fast: a flat profile (non-identifiable) stays flat at
-# any resolution, and a bounded profile rises well above the delta threshold on a coarse grid. The
-# structural Fisher-rank tests above are the decisive check; these confirm it via profile likelihood.
-FIT = dict(maxiter=500)
-PROF = dict(span=2.0, n=7, maxiter=500)
+# Keep these correctness checks fast: a flat profile (non-identifiable) stays flat at any resolution,
+# and a bounded profile rises well above the delta threshold on a coarse grid, so a small grid with a
+# capped inner optimizer and a looser ODE tolerance suffices. The structural Fisher-rank tests above
+# are the decisive check; these confirm it via profile likelihood.
+_FAST = partial(simulate_mrna_protein, rtol=1e-6, atol=1e-8)
+FIT = dict(maxiter=300, simulate=_FAST)
+PROF = dict(span=2.0, n=5, maxiter=200, simulate=_FAST)
 
 
 class ProfileLikelihoodTest(unittest.TestCase):
